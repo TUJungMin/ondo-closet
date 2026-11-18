@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: ondo-closet-backend
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: ${PORT:8080}
+
+app:
+  jwt:
+    # 로컬 개발용 기본값. 배포(prod)에서는 반드시 JWT_SECRET 환경변수로 32자 이상 값을 넣어야 함
+    secret: ${JWT_SECRET:local-dev-secret-change-me-0123456789abcdef}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:168}
+  cors:
+    # 프론트 주소. 여러 개면 쉼표로 구분 (예: https://ondo.vercel.app,http://localhost:5173)
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5500}
+  storage:
+    local-dir: ${STORAGE_DIR:./uploads}
+  closet:
+    max-items-per-user: 200
