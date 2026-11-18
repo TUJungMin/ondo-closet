@@ -1,0 +1,6 @@
+# 모델이 정해지면 버전을 고정해서 적어 주세요. 예:
+# fastapi==
+# uvicorn==
+# torch==
+# transformers==
+# pillow==
