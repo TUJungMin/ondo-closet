@@ -10,17 +10,6 @@ studio.after(note);get('outfitCaption').textContent='내 옷으로 코디를 만
 let closet=[],selected=[];
 const dbPromise=window.guestMode?Promise.resolve(null):new Promise((resolve,reject)=>{const request=indexedDB.open('weather-wardrobe',1);request.onupgradeneeded=()=>request.result.createObjectStore('clothes',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
 async function transaction(mode,operation){if(window.guestMode)return window.guestStore('clothes',operation);const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('clothes',mode);const req=operation(tx.objectStore('clothes'));tx.oncomplete=()=>resolve(req.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}
-function readPreferences(){
- try{return JSON.parse(window.wardrobeStorage.getItem('wardrobe.preferences')||'{}');}catch{return {};}
-}
-let preferences=readPreferences();
-preferences.feedback=preferences.feedback||[];
-preferences.rejected=preferences.rejected||{};
-let fixedId='',lastContext=null;
-function savePreferences(){
- try{window.wardrobeStorage.setItem('wardrobe.preferences',JSON.stringify(preferences));}
- catch{get('closetStatus').textContent='선호 기록 저장에 실패했습니다.';}
-}
 async function updateItem(item,changes){
  const updated={...item,...changes};
  try{await transaction('readwrite',store=>store.put(updated));Object.assign(item,updated);paint();}
@@ -28,7 +17,6 @@ async function updateItem(item,changes){
 }
 function paint(){
  const grid=get('closetGrid');grid.replaceChildren();
- if(get('capsuleProgress'))get('capsuleProgress').textContent='자주 입는 옷 '+closet.filter(item=>item.favorite).length+'/10벌 · 필요한 종류부터 조금씩 등록하세요.';
 
  closet.forEach(item=>{
   const card=document.createElement('article');card.className='garment'+(selected.includes(item.id)?' selected':'');
@@ -36,23 +24,8 @@ function paint(){
   const name=document.createElement('strong');name.textContent=item.name;
   const label=document.createElement('small');label.textContent={top:'상의',bottom:'바지',skirt:'스커트',outer:'겉옷',shoes:'신발'}[item.type];
   const remove=document.createElement('button');remove.textContent='삭제';remove.onclick=async()=>{try{await transaction('readwrite',store=>store.delete(item.id));closet=closet.filter(row=>row.id!==item.id);selected=[];paint();window.dispatchEvent(new CustomEvent('wardrobe-outfit',{detail:[]}));}catch{get('closetStatus').textContent='삭제하지 못했습니다.';}};
-  const state=document.createElement('select');state.setAttribute('aria-label',item.name+' 착용 상태');
- [['ready','착용 가능'],['laundry','세탁 중'],['drying','건조 중'],['repair','수선 중']].forEach(([value,text])=>state.add(new Option(text,value)));
- state.value=item.state||'ready';state.onchange=()=>updateItem(item,{state:state.value});
- const favorite=document.createElement('button');favorite.textContent=item.favorite?'★ 자주 입는 옷':'☆ 자주 입는 옷';
- favorite.setAttribute('aria-pressed',!!item.favorite);
- favorite.onclick=()=>{if(!item.favorite&&closet.filter(row=>row.favorite).length>=10){get('closetStatus').textContent='자주 입는 옷은 10벌까지 선택할 수 있어요. 기존 선택을 해제해 주세요.';return;}updateItem(item,{favorite:!item.favorite});};
- const fix=document.createElement('button');fix.textContent=fixedId===item.id?'고정 해제':'이 옷 고정';
- fix.setAttribute('aria-pressed',fixedId===item.id);fix.disabled=(item.state||'ready')!=='ready';
- fix.onclick=()=>{fixedId=fixedId===item.id?'':item.id;recommend();get('outfitTab')?.click();};
- const reason=document.createElement('select');reason.setAttribute('aria-label',item.name+' 안 입는 이유');
- [['','안 입는 이유 선택'],['matching','어울리는 조합을 모르겠어요'],['bold','색이 부담돼요'],['uncomfortable','착용감이 불편해요'],['fit','사이즈가 맞지 않아요']].forEach(([value,text])=>reason.add(new Option(text,value)));
- reason.value=item.unusedReason||'';reason.onchange=()=>updateItem(item,{unusedReason:reason.value});
- const revive=document.createElement('button');revive.textContent='이 옷 다시 활용';
- revive.disabled=(item.state||'ready')!=='ready';
- revive.onclick=()=>{if(['fit','uncomfortable'].includes(item.unusedReason)){get('closetStatus').textContent='사이즈·착용감 문제를 먼저 확인해 주세요. 해결했다면 안 입는 이유를 변경할 수 있어요.';return;}fixedId=item.id;recommend();get('outfitTab')?.click();};
  const edit=document.createElement('button');edit.textContent='사진·정보 수정';edit.onclick=()=>editGarment(item);
- card.append(image,name,label,state,favorite,fix,edit,reason,revive,remove);grid.append(card);
+ card.append(image,name,label,edit,remove);grid.append(card);
  });
 }
 function editGarment(item){
@@ -113,65 +86,24 @@ get('garmentForm').onsubmit=async event=>{
 function recommend(){
  const preference=get('preferredStyle').value||({office:'minimal',cafe:'casual',outdoor:'sport',formal:'formal'}[place]);
  const raw=Math.min(weather.low,weather.feel);
- const similar=preferences.feedback.filter(entry=>Math.abs(entry.temperature-raw)<=5).slice(-10);
- const correction=similar.length?similar.reduce((sum,entry)=>sum+({cold:-2,good:0,hot:2}[entry.feeling]||0),0)/similar.length:0;
- const warmth=raw+Number(get('sensitivity').value)+correction;
+ const warmth=raw+Number(get('sensitivity').value);
  const target=warmth<12?'warm':warmth<20?'medium':'light';
- const fixed=closet.find(item=>item.id===fixedId);
- const types=['top','bottom','shoes'];if(warmth<19||fixed?.type==='outer')types.push('outer');
+ const types=['top','bottom','shoes'];if(warmth<19)types.push('outer');
  const picks=[],missing=[];
- const pool=closet.filter(item=>(item.state||'ready')==='ready'&&(!get('capsuleOnly')?.checked||item.favorite||item.id===fixedId));
- function score(item){
-  const reject=preferences.rejected[item.id]||[];
-  const penalties=reject.filter(entry=>entry.place===place).length*2;
-  const dull=item.unusedReason==='bold'?1:0;
-  return ((item.style===preference||window.guestProfile?.styles?.includes(item.style))?3:0)+(item.warm===target?2:0)-penalties-dull;
- }
+ const pool=closet;
+ function score(item){return ((item.style===preference||window.guestProfile?.styles?.includes(item.style))?3:0)+(item.warm===target?2:0);}
  types.forEach(type=>{
   let options=pool.filter(item=>item.type===type||(type==='bottom'&&item.type==='skirt'));
-  options=options.filter(item=>!['fit','uncomfortable'].includes(item.unusedReason));
   if(type==='shoes'&&weather.condition!=='dry')options=options.filter(item=>item.water&&(weather.condition!=='snow'||item.grip));
   options.sort((a,b)=>score(b)-score(a));
-  const pick=options.find(item=>item.id===fixedId)||options[0];
+  const pick=options[0];
   if(pick)picks.push(pick);else missing.push({top:'상의',bottom:'하의',shoes:weather.condition==='dry'?'신발':'날씨에 맞는 방수·접지 신발',outer:'겉옷'}[type]);
  });
  selected=picks.map(item=>item.id);paint();
- lastContext={temperature:raw,place,ids:[...selected],at:new Date().toISOString()};
- get('outfitStatus').textContent=(picks.length?'선택한 옷 · '+picks.map(item=>item.name).join(' + '):'착용 가능한 옷을 등록하거나 10벌 모드를 해제해 주세요.')+(missing.length?' / 필요한 항목 · '+missing.join(', '):'')+(fixed&&!selected.includes(fixed.id)?' / 고정한 옷은 현재 조건에 맞지 않아 제외했습니다.':'')+(similar.length?' / 비슷한 기온의 체감 기록 '+similar.length+'건을 반영했습니다.':'');
+ get('outfitStatus').textContent=(picks.length?'선택한 옷 · '+picks.map(item=>item.name).join(' + '):'옷 사진을 등록하면 코디를 추천해 드려요.')+(missing.length?' / 더 필요한 항목 · '+missing.join(', '):'');
  window.dispatchEvent(new CustomEvent('wardrobe-outfit',{detail:picks}));
- renderFeedback(picks);
+
 }
-function renderFeedback(picks){
- const box=get('personalFeedback');if(!box)return;box.replaceChildren();
- if(!picks.length)return;
- const heading=document.createElement('h3');heading.textContent='추천이 마음에 들지 않나요?';box.append(heading);
- picks.forEach(item=>{
-  const row=document.createElement('div');row.className='feedback-row';
-  const label=document.createElement('span');label.textContent=item.name;
-  const select=document.createElement('select');select.setAttribute('aria-label',item.name+' 추천 거절 이유');
-  [['','이유 선택'],['color','색이 부담돼요'],['comfort','걷거나 움직이기 불편해요'],['formal','너무 격식 있어요'],['casual','너무 캐주얼해요'],['repeat','최근에 자주 입었어요']].forEach(([value,text])=>select.add(new Option(text,value)));
-  const button=document.createElement('button');button.textContent='기억하고 다시 추천';
-  button.onclick=()=>{if(!select.value)return;const records=preferences.rejected[item.id]||[];records.push({reason:select.value,place,at:new Date().toISOString()});preferences.rejected[item.id]=records.slice(-20);if(item.id===fixedId)fixedId='';savePreferences();recommend();};
-  row.append(label,select,button);box.append(row);
- });
- const title=document.createElement('h3');title.textContent='실제로 입고 돌아온 뒤 체감을 알려주세요';box.append(title);
- [['cold','추웠어요'],['good','적당했어요'],['hot','더웠어요']].forEach(([feeling,text])=>{
-  const button=document.createElement('button');button.textContent=text;
-  button.onclick=()=>{
-   if(!lastContext)return;
-   preferences.feedback.push({...lastContext,feeling});preferences.feedback=preferences.feedback.slice(-100);savePreferences();
-   picks.forEach(item=>updateItem(item,{lastWorn:new Date().toISOString()}));
-   box.querySelectorAll('.feeling-button').forEach(node=>node.disabled=true);
-   const saved=document.createElement('p');saved.textContent='체감 기록을 저장했어요. 다음 추천부터 비슷한 기온에 반영합니다.';box.append(saved);
-  };
-  button.className='feeling-button';box.append(button);
- });
-}
-window.addEventListener('wardrobe-personal-ready',()=>{
- get('capsuleOnly').checked=!!preferences.capsule;
- get('capsuleOnly').onchange=()=>{preferences.capsule=get('capsuleOnly').checked;savePreferences();recommend();};
- paint();
-});
 get('buildOutfit').onclick=recommend;
 get('preferredStyle').onchange=()=>{if(selected.length)recommend();};
 transaction('readonly',store=>store.getAll()).then(rows=>{closet=rows;paint();}).catch(()=>get('closetStatus').textContent='브라우저에서 옷장 저장 기능을 사용할 수 없습니다.');
