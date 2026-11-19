@@ -39,6 +39,15 @@
   .closet { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
   .garment { border:1px solid var(--line); border-radius:10px; padding:8px; background:#fff; font-size:13px; display:grid; gap:4px; }
   .garment .cut { aspect-ratio:1; } .ph { display:grid; place-items:center; color:var(--muted); font-size:12px; }
+  .recs { display:grid; gap:14px; }
+  .rec { border:1px solid var(--line); border-radius:12px; padding:14px; background:#fff; display:grid; gap:10px; }
+  .rec h3 { margin:0; font-size:15px; } .rec .reason { font-size:15px; }
+  .outfit { display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:10px; }
+  .piece { font-size:12px; display:grid; gap:4px; text-align:center; } .piece .cut { aspect-ratio:1; }
+  .piece.pinned .cut { outline:3px solid var(--accent); }
+  .basis { font-size:13px; color:var(--muted); margin:0; padding-left:18px; }
+  .grid-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap:10px; align-items:end; }
+  .grid-form label { display:grid; gap:4px; font-size:13px; color:var(--muted); }
   @media (max-width: 760px) { .upload { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -90,7 +99,25 @@
   </section>
 
   <section>
-    <h2>4. 내 옷장</h2>
+    <h2>4. 코디 추천</h2>
+    <p class="hint">오늘 입고 싶은 옷 한 벌을 고정하면, 날씨·장소에 맞춰 내 옷장에서 나머지를 골라 줘요. 날씨 API 연결 전이라 기온은 직접 넣어요.</p>
+    <div class="grid-form">
+      <label>고정할 옷<select id="pinned"></select></label>
+      <label>기온 (°C)<input id="tempC" type="number" value="8" step="1"></label>
+      <label>체감 (°C, 선택)<input id="feelsLikeC" type="number" step="1" placeholder="비우면 AI가 계산"></label>
+      <label>최저 / 최고 (°C)<span class="row"><input id="tempMinC" type="number" value="3" style="width:70px"><input id="tempMaxC" type="number" value="12" style="width:70px"></span></label>
+      <label>하늘<select id="sky"><option value="clear">맑음</option><option value="cloudy">흐림</option><option value="rain">비</option><option value="snow">눈</option></select></label>
+      <label>바람 (m/s)<input id="windMs" type="number" value="2" step="1" min="0"></label>
+      <label>장소<select id="place"><option value="daily">일상</option><option value="office">출근·미팅</option><option value="formal">격식</option><option value="date">카페·데이트</option><option value="outdoor">산책·야외</option><option value="sport">운동</option></select></label>
+      <button class="primary" id="recommendBtn">추천 받기</button>
+    </div>
+    <div class="checks" id="preferred" style="margin-top:10px">선호 스타일:</div>
+    <div class="status" id="recommendStatus"></div>
+    <div class="recs" id="recs"></div>
+  </section>
+
+  <section>
+    <h2>5. 내 옷장</h2>
     <div class="row" style="margin-bottom:12px"><button id="refreshBtn">새로고침</button><span class="hint" id="closetCount" style="margin:0"></span></div>
     <div class="closet" id="closet"></div>
   </section>
@@ -99,8 +126,14 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const CATEGORY = { TOP: '상의', PANTS: '바지', SKIRT: '스커트', OUTER: '겉옷', SHOES: '신발' };
-  const STYLE = { MINIMAL: '미니멀', CASUAL: '캐주얼', FORMAL: '포멀', SPORTY: '스포티' };
+  // 프론트와 약속한 값 (명세서 AL-01·03·04)
+  const CATEGORY = { top: '상의', pants: '바지', skirt: '스커트', outer: '겉옷', shoes: '신발' };
+  const STYLE = { casual: '캐주얼', formal: '포멀', sporty: '스포티', street: '스트릿', feminine: '페미닌' };
+  const WARM = { light: '얇음', medium: '보통', warm: '따뜻함' };
+  Object.entries(STYLE).forEach(([k, v]) => {
+    const box = el('input', { type: 'checkbox', value: k });
+    $('preferred').append(el('label', {}, box, ' ' + v));
+  });
   let token = sessionStorage.getItem('ondo.token');
   let current = null;
 
@@ -175,7 +208,7 @@
     preview.querySelectorAll('.box').forEach(b => b.remove());
     items.filter(i => i.box).forEach(item => {
       const [l, t, r, b] = item.box;
-      const label = (item.ai.category || item.ai.detectorLabel || '?') + ' ' + item.index;
+      const label = (item.ai.type || item.ai.detectorLabel || '?') + ' ' + item.index;
       preview.append(el('div', { class: 'box', style: `left:${l * 100}%;top:${t * 100}%;width:${(r - l) * 100}%;height:${(b - t) * 100}%` },
         el('span', { text: label })));
     });
@@ -215,21 +248,21 @@
     const box = $('items'); box.replaceChildren();
     result.items.forEach(item => {
       const d = item.draft, ai = item.ai;
-      const name = el('input', { value: d.name || '', placeholder: '예: 베이지 니트', maxlength: '50' });
-      const category = select(CATEGORY, d.category, true);
-      const color = el('input', { value: d.color || '', placeholder: '예: 베이지', maxlength: '30' });
-      const warmth = select({ 1: '1 한여름용', 2: '2', 3: '3', 4: '4', 5: '5 한겨울용' }, d.warmth, true);
+      const name = el('input', { value: d.name || '', placeholder: '예: 베이지 니트', maxlength: '60' });
+      const category = select(CATEGORY, d.type, true);
+      const color = el('input', { type: 'color', value: d.color || '#d9d1bd' });
+      const warmth = select(WARM, d.warm, true);
       const style = select(STYLE, d.style, true);
-      const water = el('input', { type: 'checkbox' }); water.checked = d.waterproof;
+      const water = el('input', { type: 'checkbox' }); water.checked = d.water;
       const grip = el('input', { type: 'checkbox' }); grip.checked = d.grip;
       const status = el('div', { class: 'status' });
       const save = el('button', { class: 'primary', text: '옷장에 저장' });
       const colorsText = ai.colors.map(c => el('span', {}, el('span', { class: 'swatch', style: 'background:' + c.hex }), c.name + ' ' + Math.round(c.ratio * 100) + '% '));
       const card = el('div', { class: 'item' },
-        d.imageUrl ? el('img', { class: 'cut', src: d.imageUrl, alt: (d.name || '옷') + ' 배경 제거 사진' }) : el('div', { class: 'cut ph', text: '배경 제거 사진 없음' }),
+        d.photo ? el('img', { class: 'cut', src: d.photo, alt: (d.name || '옷') + ' 배경 제거 사진' }) : el('div', { class: 'cut ph', text: '배경 제거 사진 없음' }),
         el('div', { class: 'ai' },
           el('b', { text: `#${item.index} AI 제안 ` }),
-          `종류 ${ai.category || '미정'} (${Math.round(ai.categoryConfidence * 100)}%)`,
+          `종류 ${ai.type || '미정'} (${Math.round(ai.typeConfidence * 100)}%)`,
           ai.subtype ? ` · ${ai.subtype}` : '', ai.style ? ` · ${ai.style}` : '', el('br'), ...colorsText,
           ai.needsReview ? el('div', { class: 'review', text: '확인이 필요한 칸이 있어요' }) : null,
           ai.warnings.length ? el('div', { class: 'review', text: ai.warnings.join(' ') }) : null),
@@ -239,9 +272,9 @@
         save, status);
       item.save = async () => {
         if (card.classList.contains('saved')) return true;
-        const body = { name: name.value.trim(), category: category.value || null, color: color.value.trim(),
-          warmth: warmth.value ? Number(warmth.value) : null, style: style.value || null,
-          waterproof: water.checked, grip: grip.checked, imageUrl: d.imageUrl, aiTagged: true };
+        const body = { name: name.value.trim(), type: category.value || null, color: color.value,
+          warm: warmth.value || null, warmScore: warmth.value === d.warm ? d.warmScore : null, style: style.value || null,
+          water: water.checked, grip: grip.checked, photo: d.photo, aiTagged: true };
         try {
           await api('/api/clothes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
           card.classList.add('saved'); save.disabled = true; status.textContent = '저장했어요.'; status.classList.remove('err');
@@ -267,15 +300,49 @@
       const list = await api('/api/clothes');
       $('closetCount').textContent = `${list.length}벌`;
       $('closet').replaceChildren(...list.map(c => {
+        const pin = el('button', { text: '이 옷으로 코디' });
+        pin.onclick = () => { $('pinned').value = String(c.id); $('pinned').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
         const del = el('button', { text: '삭제' });
         del.onclick = async () => { await api('/api/clothes/' + c.id, { method: 'DELETE' }); loadCloset(); };
         return el('div', { class: 'garment' },
-          c.imageUrl ? el('img', { class: 'cut', src: c.imageUrl, alt: c.name }) : el('div', { class: 'cut ph', text: '사진 없음' }),
-          el('b', { text: c.name }), el('span', { text: `${CATEGORY[c.category]} · ${c.color} · 보온 ${c.warmth}${c.aiTagged ? ' · AI' : ''}` }), del);
+          c.photo ? el('img', { class: 'cut', src: c.photo, alt: c.name }) : el('div', { class: 'cut ph', text: '사진 없음' }),
+          el('b', { text: c.name }), el('span', {}, el('span', { class: 'swatch', style: 'background:' + c.color }), `${CATEGORY[c.type]} · ${STYLE[c.style] || ''} · ${WARM[c.warm]}(${c.warmScore})${c.aiTagged ? ' · AI' : ''}`), pin, del);
       }));
+      const keep = $('pinned').value;
+      $('pinned').replaceChildren(el('option', { value: '', text: '고정 안 함 (서버가 골라 줌)' }), ...list.map(c => el('option', { value: String(c.id), text: `${CATEGORY[c.type]} · ${c.name}` })));
+      if (list.some(c => String(c.id) === keep)) $('pinned').value = keep;
     } catch (e) { $('closetCount').textContent = e.message; }
   }
   $('refreshBtn').onclick = loadCloset;
+
+  const num = id => $(id).value === '' ? null : Number($(id).value);
+
+  $('recommendBtn').onclick = async () => {
+    if (!token) { setStatus('recommendStatus', '먼저 로그인해 주세요.', true); return; }
+    const body = {
+      pinnedId: $('pinned').value ? Number($('pinned').value) : null,
+      weather: { tempC: Number($('tempC').value), feelsLikeC: num('feelsLikeC'), tempMinC: num('tempMinC'), tempMaxC: num('tempMaxC'),
+        sky: $('sky').value, windMs: Number($('windMs').value || 0) },
+      place: $('place').value, topK: 3,
+      preferredStyles: [...document.querySelectorAll('#preferred input:checked')].map(b => b.value)
+    };
+    $('recommendBtn').disabled = true; $('recs').replaceChildren();
+    setStatus('recommendStatus', '코디를 고르고 있어요...');
+    try {
+      const r = await api('/api/outfits/recommend', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const head = `체감 ${r.apparentTempC}°C 기준으로 ${r.recommendations.length}개를 골랐어요.` + (r.autoPinned ? ' (고정 옷은 서버가 골랐어요)' : '');
+      setStatus('recommendStatus', r.warnings.length ? head + ' · ' + r.warnings.join(' ') : head);
+      $('recs').replaceChildren(...r.recommendations.map(rec => el('div', { class: 'rec' },
+        el('h3', { text: `${rec.rank}순위 · ${Math.round(rec.score)}점` }),
+        el('div', { class: 'reason', text: rec.reason }),
+        el('div', { class: 'outfit' }, rec.items.map(it => el('div', { class: 'piece' + (it.pinned ? ' pinned' : '') },
+          it.photo ? el('img', { class: 'cut', src: it.photo, alt: it.name }) : el('div', { class: 'cut ph', text: it.slot }),
+          el('b', { text: it.name }), el('span', { text: it.slot + (it.pinned ? ' · 고정' : '') })))),
+        el('ul', { class: 'basis' }, rec.basis.map(b => el('li', { text: `${b.kind}: ${b.text}` }))))));
+    } catch (e) {
+      setStatus('recommendStatus', e.message, true);
+    } finally { $('recommendBtn').disabled = false; }
+  };
 
   checkHealth(); setInterval(checkHealth, 15000);
   if (token) api('/api/me').then(showUser).catch(() => showUser(null)); else showUser(null);

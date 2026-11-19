@@ -79,22 +79,26 @@ class AiAnalysisFlowTest {
                 .andExpect(jsonPath("$.mode").value("outfit"))
                 .andExpect(jsonPath("$.items.length()").value(3))
                 .andExpect(jsonPath("$.skipped[0]").value("가방"))
-                // 상의: 종류·보온성·색은 채워지고, 백엔드에 없는 스타일(스트릿)은 비워서 확인 필요
-                .andExpect(jsonPath("$.items[0].draft.category").value("TOP"))
+                // 상의: 프론트 형식(type·warm·HEX 색·photo)으로 모두 채워짐
+                .andExpect(jsonPath("$.items[0].draft.type").value("top"))
                 .andExpect(jsonPath("$.items[0].draft.name").value("갈색 후드티"))
-                .andExpect(jsonPath("$.items[0].draft.color").value("갈색"))
-                .andExpect(jsonPath("$.items[0].draft.warmth").value(4))
-                .andExpect(jsonPath("$.items[0].draft.style").doesNotExist())
-                .andExpect(jsonPath("$.items[0].draft.imageUrl").value(startsWith("/uploads/")))
+                .andExpect(jsonPath("$.items[0].draft.color").value("#423529"))
+                .andExpect(jsonPath("$.items[0].draft.warm").value("warm"))
+                .andExpect(jsonPath("$.items[0].draft.warmScore").value(4))
+                .andExpect(jsonPath("$.items[0].draft.style").value("street"))
+                .andExpect(jsonPath("$.items[0].draft.photo").value(startsWith("http://localhost:8080/uploads/")))
                 .andExpect(jsonPath("$.items[0].ai.style").value("스트릿"))
-                .andExpect(jsonPath("$.items[0].ai.needsReview").value(true))
-                // 바지: 모두 채워짐
-                .andExpect(jsonPath("$.items[1].draft.category").value("PANTS"))
-                .andExpect(jsonPath("$.items[1].draft.style").value("CASUAL"))
-                .andExpect(jsonPath("$.items[1].ai.needsReview").value(false))
-                // 신발: 확신이 낮아 종류가 비고, 후보는 백엔드 값으로도 알려줌
-                .andExpect(jsonPath("$.items[2].draft.category").doesNotExist())
-                .andExpect(jsonPath("$.items[2].ai.categoryCandidates[0].category").value("SHOES"))
+                .andExpect(jsonPath("$.items[0].ai.needsReview").value(false))
+                // 바지
+                .andExpect(jsonPath("$.items[1].draft.type").value("pants"))
+                .andExpect(jsonPath("$.items[1].draft.style").value("casual"))
+                .andExpect(jsonPath("$.items[1].draft.warm").value("medium"))
+                // 신발: 확신이 낮아 종류·보온성이 비고, 후보는 프론트 값으로도 알려줌
+                .andExpect(jsonPath("$.items[2].draft.type").doesNotExist())
+                .andExpect(jsonPath("$.items[2].draft.warm").doesNotExist())
+                .andExpect(jsonPath("$.items[2].draft.photo").doesNotExist())
+                .andExpect(jsonPath("$.items[2].ai.needsReview").value(true))
+                .andExpect(jsonPath("$.items[2].ai.typeCandidates[0].type").value("shoes"))
                 .andExpect(jsonPath("$.items[2].ai.warnings[0]").exists())
                 .andReturn();
 
@@ -104,7 +108,8 @@ class AiAnalysisFlowTest {
                         .contentType(MediaType.APPLICATION_JSON).content(draft.toString()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.aiTagged").value(true))
-                .andExpect(jsonPath("$.imageUrl").value(startsWith("/uploads/")));
+                .andExpect(jsonPath("$.type").value("pants"))
+                .andExpect(jsonPath("$.photo").value(startsWith("http://localhost:8080/uploads/")));
     }
 
     @Test
@@ -122,8 +127,9 @@ class AiAnalysisFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mode").value("single"))
                 .andExpect(jsonPath("$.items[0].box").doesNotExist())
-                .andExpect(jsonPath("$.items[0].draft.category").value("OUTER"))
-                .andExpect(jsonPath("$.items[0].draft.style").value("FORMAL"));
+                .andExpect(jsonPath("$.items[0].draft.type").value("outer"))
+                .andExpect(jsonPath("$.items[0].draft.style").value("formal"))
+                .andExpect(jsonPath("$.items[0].draft.color").value("#ad9b7a"));
     }
 
     @Test

@@ -21,7 +21,11 @@ public record AppProperties(Jwt jwt, Cors cors, Storage storage, Closet closet, 
         }
     }
 
-    public record Storage(String localDir) {
+    /**
+     * @param localDir      사진 파일을 저장할 폴더
+     * @param publicBaseUrl 응답의 photo 앞에 붙일 서버 주소 (예: http://localhost:8080). 프론트가 다른 포트에서 떠도 사진이 보이게 한다
+     */
+    public record Storage(String localDir, String publicBaseUrl) {
     }
 
     public record Closet(int maxItemsPerUser) {

@@ -8,7 +8,9 @@ import com.ondo.closet.ai.dto.AiServerResponses.Suggestion;
 import com.ondo.closet.ai.dto.AnalyzeResponse;
 import com.ondo.closet.clothes.Category;
 import com.ondo.closet.clothes.Style;
+import com.ondo.closet.clothes.WarmLevel;
 import com.ondo.closet.image.ImageStorage;
+import com.ondo.closet.image.PhotoService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,10 +26,12 @@ public class ClothesAnalysisService {
 
     private final AiServerClient aiServerClient;
     private final ImageStorage imageStorage;
+    private final PhotoService photoService;
 
-    public ClothesAnalysisService(AiServerClient aiServerClient, ImageStorage imageStorage) {
+    public ClothesAnalysisService(AiServerClient aiServerClient, ImageStorage imageStorage, PhotoService photoService) {
         this.aiServerClient = aiServerClient;
         this.imageStorage = imageStorage;
+        this.photoService = photoService;
     }
 
     public AnalyzeResponse analyze(byte[] image, String filename, String contentType, boolean outfit) {
@@ -67,18 +71,19 @@ public class ClothesAnalysisService {
         Category mappedCategory = AiValueMapper.category(category.text());
         Style mappedStyle = AiValueMapper.style(style.text());
         Integer mappedWarmth = AiValueMapper.warmth(warmth.number());
-        String color = colors.isEmpty() ? null : colors.get(0).name();
+        String color = colors.isEmpty() ? null : toHex(colors.get(0));
         String name = analysis == null ? null : analysis.nameSuggestion();
-        String imageUrl = saveCutout(cutoutBase64);
+        String photo = photoService.publicUrl(saveCutout(cutoutBase64));
 
         AnalyzeResponse.Draft draft = new AnalyzeResponse.Draft(
-                name, mappedCategory, color, null, mappedWarmth, mappedStyle,
+                name, mappedCategory, color, null,
+                mappedWarmth == null ? null : WarmLevel.of(mappedWarmth), mappedWarmth, mappedStyle,
                 analysis != null && Boolean.TRUE.equals(analysis.waterproof()),
                 analysis != null && Boolean.TRUE.equals(analysis.grip()),
-                imageUrl, true);
+                photo, true);
 
-        List<AnalyzeResponse.CategoryCandidate> candidates = category.candidatesOrEmpty().stream()
-                .map(c -> new AnalyzeResponse.CategoryCandidate(c.label(), AiValueMapper.category(c.label()), c.score()))
+        List<AnalyzeResponse.TypeCandidate> candidates = category.candidatesOrEmpty().stream()
+                .map(c -> new AnalyzeResponse.TypeCandidate(c.label(), AiValueMapper.category(c.label()), c.score()))
                 .toList();
         boolean needsReview = mappedCategory == null || mappedStyle == null || mappedWarmth == null
                 || color == null || name == null;
@@ -88,6 +93,14 @@ public class ClothesAnalysisService {
                 style.text(), style.confidence(), warmth.confidence(), colors, detectorLabel, needsReview,
                 analysis == null ? List.of() : orEmpty(analysis.warnings()));
         return new AnalyzeResponse.Item(index, box, draft, detail);
+    }
+
+    /** AI 대표색 → #RRGGBB (AL-02). hex 가 없으면 색 이름의 대표 견본 */
+    private static String toHex(AiServerResponses.ColorInfo info) {
+        if (info.hex() != null && ColorPalette.isHex(info.hex())) {
+            return info.hex().trim().toLowerCase();
+        }
+        return ColorPalette.hexOf(info.name());
     }
 
     /** AI가 준 배경 제거 PNG(base64)를 저장하고 URL을 돌려준다. 없으면 null. */

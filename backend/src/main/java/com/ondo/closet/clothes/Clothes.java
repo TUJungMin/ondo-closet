@@ -31,13 +31,14 @@ public class Clothes {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 60)
     private String name;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private Category category;
 
+    /** #RRGGBB (AL-02). AI 에 보낼 때 가장 가까운 색 이름으로 바꾼다 */
     @Column(nullable = false, length = 30)
     private String color;
 
@@ -86,7 +87,7 @@ public class Clothes {
     public void apply(ClothesSpec spec) {
         this.name = spec.name().trim();
         this.category = spec.category();
-        this.color = spec.color().trim();
+        this.color = spec.color().trim().toLowerCase();
         this.material = spec.material() == null || spec.material().isBlank() ? null : spec.material().trim();
         this.warmth = spec.warmth();
         this.style = spec.style();

@@ -2,6 +2,7 @@ package com.ondo.closet.ai.dto;
 
 import com.ondo.closet.clothes.Category;
 import com.ondo.closet.clothes.Style;
+import com.ondo.closet.clothes.WarmLevel;
 
 import java.util.List;
 
@@ -29,34 +30,35 @@ public record AnalyzeResponse(
     /** POST /api/clothes 요청과 같은 모양. AI가 확신하지 못한 값은 null 이므로 화면에서 채워야 한다. */
     public record Draft(
             String name,
-            Category category,
-            String color,
+            Category type,
+            String color,            // #RRGGBB
             String material,
-            Integer warmth,
+            WarmLevel warm,
+            Integer warmScore,       // AI 가 준 1~5 세부값. 그대로 저장 요청에 넣으면 끝값(1·5)이 지켜진다
             Style style,
-            boolean waterproof,
+            boolean water,
             boolean grip,
-            String imageUrl,         // 배경을 지운 옷 사진 (서버에 저장됨)
+            String photo,            // 배경을 지운 옷 사진 주소 (서버에 저장됨)
             boolean aiTagged
     ) {
     }
 
     /** 화면에 'AI 제안'과 확신도를 보여주기 위한 원래 값 */
     public record AiDetail(
-            String category,         // AI 원래 값 (상의, 바지 ...), 확신 낮으면 null
-            double categoryConfidence,
-            List<CategoryCandidate> categoryCandidates,
+            String type,             // AI 원래 값 (상의, 바지 ...), 확신 낮으면 null
+            double typeConfidence,
+            List<TypeCandidate> typeCandidates,
             String subtype,          // 세부 종류 (니트, 청바지 ...)
             String style,            // AI 원래 값 (캐주얼, 스트릿 ...)
             double styleConfidence,
-            double warmthConfidence,
+            double warmConfidence,
             List<AiServerResponses.ColorInfo> colors,
             String detectorLabel,    // 여러 벌 사진에서 검출 모델이 붙인 이름 (jacket, pants ...)
-            boolean needsReview,     // 종류·스타일·보온성 중 비어 있는 값이 있으면 true
+            boolean needsReview,     // 종류·색·보온성·스타일·이름 중 비어 있는 값이 있으면 true
             List<String> warnings
     ) {
     }
 
-    public record CategoryCandidate(String label, Category category, double score) {
+    public record TypeCandidate(String label, Category type, double score) {
     }
 }

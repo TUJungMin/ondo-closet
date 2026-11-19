@@ -1,5 +1,6 @@
 package com.ondo.closet.ai;
 
+import com.ondo.closet.ai.dto.AiRecommend;
 import com.ondo.closet.ai.dto.AiServerResponses.Analysis;
 import com.ondo.closet.ai.dto.AiServerResponses.OutfitAnalysis;
 import com.ondo.closet.global.config.AppProperties;
@@ -8,10 +9,13 @@ import com.ondo.closet.global.error.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -57,6 +61,32 @@ public class AiServerClient {
         return post("/ai/analyze-outfit", image, filename, contentType, OutfitAnalysis.class);
     }
 
+    /** 코디 추천 (JSON 요청) */
+    public AiRecommend.Result recommend(AiRecommend.Request request) {
+        if (!enabled) {
+            throw new ApiException(ErrorCode.AI_UNAVAILABLE);
+        }
+        try {
+            AiRecommend.Result body = restClient.post()
+                    .uri("/ai/recommend")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(AiRecommend.Result.class);
+            if (body == null) {
+                throw new ApiException(ErrorCode.AI_UNAVAILABLE);
+            }
+            return body;
+        } catch (HttpClientErrorException e) {
+            // 백엔드가 보낸 형식을 AI 서버가 거절한 경우 (백엔드 버그). 로그로 원인을 남긴다.
+            log.error("AI server rejected recommend request: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        } catch (RestClientException e) {
+            log.warn("AI server call failed: {}", e.getMessage());
+            throw new ApiException(ErrorCode.AI_UNAVAILABLE);
+        }
+    }
+
     /** AI 서버가 살아 있는지 (모델을 올리지는 않는다) */
     public boolean isHealthy() {
         if (!enabled) {
@@ -74,18 +104,22 @@ public class AiServerClient {
         if (!enabled) {
             throw new ApiException(ErrorCode.AI_UNAVAILABLE);
         }
-        MultipartBodyBuilder parts = new MultipartBodyBuilder();
-        parts.part("file", new ByteArrayResource(image) {
+        // MultipartBodyBuilder 는 WebFlux(reactor) 클래스가 필요해서 쓰지 않는다. MVC 만으로 multipart 를 만든다.
+        HttpHeaders partHeaders = new HttpHeaders();
+        partHeaders.setContentType(MediaType.parseMediaType(contentType));
+        ByteArrayResource file = new ByteArrayResource(image) {
             @Override
             public String getFilename() {
-                return filename;
+                return filename;   // 파일 이름이 있어야 AI 서버(FastAPI)가 파일로 받는다
             }
-        }).contentType(MediaType.parseMediaType(contentType));
+        };
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("file", new HttpEntity<>(file, partHeaders));
         try {
             T body = restClient.post()
                     .uri(path)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(parts.build())
+                    .body(parts)
                     .retrieve()
                     .body(type);
             if (body == null) {
