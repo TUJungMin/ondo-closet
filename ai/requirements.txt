@@ -1,6 +1,4 @@
-# 모델이 정해지면 버전을 고정해서 적어 주세요. 예:
-# fastapi==
-# uvicorn==
-# torch==
-# transformers==
-# pillow==
+# 의존성 목록은 pyproject.toml 한 곳에서 관리한다. 아래 한 줄이 그것을 그대로 설치한다.
+# torch/torchvision은 장치(GPU·CPU)에 맞는 빌드를 먼저 설치한다. (README.md '실행' 참고)
+# 테스트를 통과한 정확한 버전은 requirements.lock.txt에 있다.
+-e .[vision,service,dev]

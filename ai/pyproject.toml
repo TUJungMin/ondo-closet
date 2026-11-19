@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ondo-ai"
+version = "0.1.0"
+description = "온도옷장 AI 모듈: 옷 사진 분석(종류·색상·배경 제거)과 규칙·점수 기반 코디 추천"
+requires-python = ">=3.10"
+# 추천 엔진은 아래 세 개만으로 동작한다. (torch 불필요)
+dependencies = [
+    "numpy>=1.26",
+    "pillow>=10",
+    "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+# 이미지 분석. torch/torchvision은 GPU 종류에 맞는 빌드를 먼저 설치한다. (ai/README.md 참고)
+vision = [
+    "torch>=2.7",
+    "torchvision>=0.22",
+    "transformers>=4.44",
+    "open_clip_torch>=2.24",
+    "huggingface_hub>=0.25",
+    "ftfy",
+    "sentencepiece",
+    "timm>=1.0",
+    "kornia>=0.7",
+    "einops>=0.7",
+]
+# 별도 추론 서버로 띄울 때만 필요
+service = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+]
+dev = ["pytest>=8"]
+
+[project.scripts]
+ondo-ai = "ondo_ai.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ondo_ai*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
