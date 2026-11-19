@@ -29,13 +29,27 @@ public class LocalImageStorage implements ImageStorage {
     @Override
     public String save(MultipartFile file, String extension) {
         // 원래 파일 이름은 쓰지 않고 무작위 이름으로 저장 (경로 조작·덮어쓰기 방지)
-        String filename = UUID.randomUUID() + "." + extension;
-        Path target = root.resolve(filename);
+        String filename = newName(extension);
         try (InputStream in = file.getInputStream()) {
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, root.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new UncheckedIOException("이미지 저장 실패", e);
         }
         return "/uploads/" + filename;
+    }
+
+    @Override
+    public String saveBytes(byte[] data, String extension) {
+        String filename = newName(extension);
+        try {
+            Files.write(root.resolve(filename), data);
+        } catch (IOException e) {
+            throw new UncheckedIOException("이미지 저장 실패", e);
+        }
+        return "/uploads/" + filename;
+    }
+
+    private String newName(String extension) {
+        return UUID.randomUUID() + "." + extension;
     }
 }

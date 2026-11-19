@@ -9,6 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface ImageStorage {
 
-    /** 저장 후 브라우저에서 바로 쓸 수 있는 URL(또는 경로)을 돌려준다 */
+    /** 업로드된 파일을 저장하고 브라우저에서 바로 쓸 수 있는 URL(또는 경로)을 돌려준다 */
     String save(MultipartFile file, String extension);
+
+    /** 서버가 만든 이미지(예: AI가 배경을 지운 PNG)를 저장한다 */
+    String saveBytes(byte[] data, String extension);
 }

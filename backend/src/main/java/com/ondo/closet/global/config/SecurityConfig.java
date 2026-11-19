@@ -28,6 +28,8 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/guest",
             "/api/health",
+            "/api/ai/health",
+            "/ai-test.html",
             "/uploads/**",
             "/error"
     };

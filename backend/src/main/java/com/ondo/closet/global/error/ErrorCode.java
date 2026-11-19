@@ -7,13 +7,14 @@ public enum ErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "입력값을 확인해 주세요."),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청 형식이 올바르지 않습니다."),
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "JPG, PNG, WEBP 이미지만 올릴 수 있습니다."),
-    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지는 5MB 이하만 올릴 수 있습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지는 15MB 이하만 올릴 수 있습니다."),
     CLOSET_FULL(HttpStatus.BAD_REQUEST, "옷장에 더 이상 옷을 추가할 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     CLOTHES_NOT_FOUND(HttpStatus.NOT_FOUND, "옷을 찾을 수 없습니다."),
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
+    AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 분석 서버에 연결할 수 없어요. 옷 정보를 직접 입력해 주세요."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;

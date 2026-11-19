@@ -7,7 +7,7 @@ import java.util.List;
 
 /** application.yml 의 app.* 설정을 한곳에 모은 클래스 */
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(Jwt jwt, Cors cors, Storage storage, Closet closet) {
+public record AppProperties(Jwt jwt, Cors cors, Storage storage, Closet closet, Ai ai) {
 
     public record Jwt(String secret, long expirationHours) {
     }
@@ -25,5 +25,11 @@ public record AppProperties(Jwt jwt, Cors cors, Storage storage, Closet closet) 
     }
 
     public record Closet(int maxItemsPerUser) {
+    }
+
+    public record Ai(String serverUrl, int timeoutSeconds) {
+        public boolean enabled() {
+            return serverUrl != null && !serverUrl.isBlank();
+        }
     }
 }

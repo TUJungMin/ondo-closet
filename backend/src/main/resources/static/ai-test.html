@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>온도옷장 · AI 연결 테스트</title>
+<style>
+  :root { --ink:#1d2430; --muted:#5f6876; --line:#d9d4c8; --paper:#f6f3ec; --card:#fffdf8; --accent:#2e62c9; --warn:#b5651d; --bad:#b8432f; --good:#2f7d4f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif; color:var(--ink); background:var(--paper); }
+  header { padding:20px 28px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:20px; margin:0 12px 0 0; }
+  .pill { font-size:13px; padding:4px 10px; border-radius:999px; background:#e9e4d8; color:var(--muted); }
+  .pill.ok { background:#dcefe3; color:var(--good); } .pill.bad { background:#f6dfd9; color:var(--bad); }
+  main { padding:24px 28px; display:grid; gap:24px; max-width:1200px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  section h2 { font-size:17px; margin:0 0 4px; } .hint { color:var(--muted); font-size:13px; margin:0 0 14px; }
+  button { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; } button:disabled { opacity:.5; cursor:default; }
+  input, select { font:inherit; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .status { font-size:14px; color:var(--muted); min-height:20px; margin-top:10px; } .status.err { color:var(--bad); }
+  .upload { display:grid; grid-template-columns: minmax(260px, 380px) 1fr; gap:20px; align-items:start; }
+  .preview { position:relative; border-radius:10px; overflow:hidden; background:#eee; min-height:200px; }
+  .preview img { display:block; width:100%; }
+  .box { position:absolute; border:2px solid var(--accent); border-radius:4px; }
+  .box span { position:absolute; left:-2px; top:-22px; background:var(--accent); color:#fff; font-size:12px; padding:1px 6px; border-radius:4px 4px 4px 0; white-space:nowrap; }
+  .items { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px; }
+  .item { border:1px solid var(--line); border-radius:12px; padding:12px; display:grid; gap:8px; background:#fff; }
+  .item.saved { opacity:.55; }
+  .cut { width:100%; aspect-ratio:1; object-fit:contain; background:repeating-conic-gradient(#f0ede6 0% 25%, #fff 0% 50%) 50% / 16px 16px; border-radius:8px; }
+  .item label { display:grid; grid-template-columns: 70px 1fr; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .item label input, .item label select { width:100%; }
+  .checks { display:flex; gap:14px; font-size:13px; color:var(--muted); }
+  .ai { font-size:12px; color:var(--muted); line-height:1.5; }
+  .ai b { color:var(--ink); } .review { color:var(--warn); font-weight:600; }
+  .swatch { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin-right:3px; border:1px solid #0002; }
+  .note { font-size:13px; color:var(--warn); }
+  .closet { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
+  .garment { border:1px solid var(--line); border-radius:10px; padding:8px; background:#fff; font-size:13px; display:grid; gap:4px; }
+  .garment .cut { aspect-ratio:1; } .ph { display:grid; place-items:center; color:var(--muted); font-size:12px; }
+  @media (max-width: 760px) { .upload { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>온도옷장 · AI 연결 테스트</h1>
+  <span class="pill" id="backendPill">백엔드 확인 중</span>
+  <span class="pill" id="aiPill">AI 확인 중</span>
+  <span class="pill" id="userPill">로그인 전</span>
+</header>
+<main>
+  <section>
+    <h2>1. 로그인</h2>
+    <p class="hint">게스트는 누를 때마다 샘플 옷 12벌이 든 새 계정이 만들어져요. 가입한 계정으로 로그인해도 돼요.</p>
+    <div class="row">
+      <button class="primary" id="guestBtn">게스트로 시작</button>
+      <span class="hint" style="margin:0">또는</span>
+      <input id="loginId" placeholder="아이디" autocomplete="username">
+      <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password">
+      <button id="loginBtn">로그인</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+    <div class="status" id="authStatus"></div>
+  </section>
+
+  <section>
+    <h2>2. 사진 분석</h2>
+    <p class="hint">착용 사진은 상의·하의·겉옷·신발로 나눠서 분석해요. 얼굴이 나오지 않게 찍은 사진을 써 주세요. 원본 사진은 저장하지 않고, 배경을 지운 옷 사진만 저장돼요.</p>
+    <div class="upload">
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <label><input type="radio" name="mode" value="outfit" checked> 여러 벌 (착용 사진)</label>
+          <label><input type="radio" name="mode" value="single"> 옷 한 벌</label>
+        </div>
+        <input type="file" id="photo" accept="image/jpeg,image/png,image/webp">
+        <div class="row" style="margin-top:10px"><button class="primary" id="analyzeBtn" disabled>AI 분석</button></div>
+        <div class="status" id="analyzeStatus"></div>
+      </div>
+      <div class="preview" id="preview"><div class="ph" style="height:200px">사진을 선택하면 여기에 보여요</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. AI 제안 확인 후 저장</h2>
+    <p class="hint">AI가 확신하지 못한 칸은 비어 있어요. 확인·수정한 뒤 저장하세요.</p>
+    <div class="row" style="margin-bottom:12px"><button id="saveAllBtn" disabled>모두 저장</button></div>
+    <div class="note" id="extraNote"></div>
+    <div class="items" id="items"></div>
+  </section>
+
+  <section>
+    <h2>4. 내 옷장</h2>
+    <div class="row" style="margin-bottom:12px"><button id="refreshBtn">새로고침</button><span class="hint" id="closetCount" style="margin:0"></span></div>
+    <div class="closet" id="closet"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const CATEGORY = { TOP: '상의', PANTS: '바지', SKIRT: '스커트', OUTER: '겉옷', SHOES: '신발' };
+  const STYLE = { MINIMAL: '미니멀', CASUAL: '캐주얼', FORMAL: '포멀', SPORTY: '스포티' };
+  let token = sessionStorage.getItem('ondo.token');
+  let current = null;
+
+  function el(tag, props = {}, ...children) {
+    const node = document.createElement(tag);
+    Object.entries(props).forEach(([k, v]) => {
+      if (k === 'class') node.className = v; else if (k === 'text') node.textContent = v;
+      else if (k.startsWith('on')) node[k] = v; else node.setAttribute(k, v);
+    });
+    children.flat().forEach(c => c != null && node.append(c));
+    return node;
+  }
+  function setStatus(id, text, error = false) { const s = $(id); s.textContent = text; s.classList.toggle('err', error); }
+
+  async function api(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch(path, { ...options, headers });
+    const text = await res.text();
+    let body = null; try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+    if (!res.ok) {
+      if (res.status === 401 && token) { token = null; sessionStorage.removeItem('ondo.token'); showUser(null); }
+      const error = new Error(body?.message || ('요청 실패 (' + res.status + ')'));
+      error.body = body; error.status = res.status; throw error;
+    }
+    return body;
+  }
+
+  function showUser(user) {
+    $('userPill').textContent = user ? (user.nickname + (user.guest ? ' (게스트)' : '') + ' 로그인') : '로그인 전';
+    $('userPill').className = 'pill' + (user ? ' ok' : '');
+    $('analyzeBtn').disabled = !user || !$('photo').files[0];
+    if (user) loadCloset(); else { $('closet').replaceChildren(); $('closetCount').textContent = ''; }
+  }
+
+  async function checkHealth() {
+    try { await api('/api/health'); $('backendPill').textContent = '백엔드 연결됨'; $('backendPill').className = 'pill ok'; }
+    catch { $('backendPill').textContent = '백엔드 안 됨'; $('backendPill').className = 'pill bad'; }
+    try {
+      const r = await api('/api/ai/health');
+      const ok = r.ai === 'ok';
+      $('aiPill').textContent = ok ? 'AI 서버 연결됨' : 'AI 서버 안 됨 (8000 포트 확인)';
+      $('aiPill').className = 'pill ' + (ok ? 'ok' : 'bad');
+    } catch { $('aiPill').textContent = 'AI 확인 실패'; $('aiPill').className = 'pill bad'; }
+  }
+
+  async function afterLogin(res) {
+    token = res.accessToken; sessionStorage.setItem('ondo.token', token);
+    showUser(res.user); setStatus('authStatus', res.user.nickname + ' 님으로 로그인했어요.');
+  }
+  $('guestBtn').onclick = async () => {
+    try { await afterLogin(await api('/api/auth/guest', { method: 'POST' })); }
+    catch (e) { setStatus('authStatus', e.message, true); }
+  };
+  $('loginBtn').onclick = async () => {
+    try {
+      await afterLogin(await api('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loginId: $('loginId').value.trim(), password: $('password').value }) }));
+    } catch (e) { setStatus('authStatus', e.message, true); }
+  };
+  $('logoutBtn').onclick = () => { token = null; sessionStorage.removeItem('ondo.token'); showUser(null); setStatus('authStatus', '로그아웃했어요.'); };
+
+  $('photo').onchange = () => {
+    const file = $('photo').files[0];
+    $('analyzeBtn').disabled = !file || !token;
+    const preview = $('preview'); preview.replaceChildren();
+    if (file) preview.append(el('img', { src: URL.createObjectURL(file), alt: '선택한 사진' }));
+  };
+
+  function drawBoxes(items) {
+    const preview = $('preview');
+    preview.querySelectorAll('.box').forEach(b => b.remove());
+    items.filter(i => i.box).forEach(item => {
+      const [l, t, r, b] = item.box;
+      const label = (item.ai.category || item.ai.detectorLabel || '?') + ' ' + item.index;
+      preview.append(el('div', { class: 'box', style: `left:${l * 100}%;top:${t * 100}%;width:${(r - l) * 100}%;height:${(b - t) * 100}%` },
+        el('span', { text: label })));
+    });
+  }
+
+  $('analyzeBtn').onclick = async () => {
+    const file = $('photo').files[0]; if (!file) return;
+    const mode = document.querySelector('input[name=mode]:checked').value;
+    const form = new FormData(); form.append('file', file);
+    $('analyzeBtn').disabled = true; $('items').replaceChildren(); $('extraNote').textContent = '';
+    setStatus('analyzeStatus', 'AI가 분석하고 있어요... (처음 한 번은 모델을 올리느라 오래 걸릴 수 있어요)');
+    const started = performance.now();
+    try {
+      current = await api('/api/clothes/analyze?mode=' + mode, { method: 'POST', body: form });
+      const sec = ((performance.now() - started) / 1000).toFixed(1);
+      setStatus('analyzeStatus', `옷 ${current.items.length}벌을 찾았어요 · ${sec}초`);
+      drawBoxes(current.items); renderItems(current);
+    } catch (e) {
+      setStatus('analyzeStatus', e.message, true);
+    } finally { $('analyzeBtn').disabled = false; }
+  };
+
+  function select(options, value, allowEmpty) {
+    const s = el('select');
+    if (allowEmpty) s.append(el('option', { value: '', text: '선택해 주세요' }));
+    Object.entries(options).forEach(([k, v]) => { const o = el('option', { value: k, text: v }); if (k === String(value)) o.selected = true; s.append(o); });
+    if (value == null) s.value = '';
+    return s;
+  }
+
+  function renderItems(result) {
+    const notes = [];
+    if (result.skipped.length) notes.push('옷장 종류가 아니라 뺀 것: ' + result.skipped.join(', '));
+    if (result.warnings.length) notes.push(...result.warnings);
+    $('extraNote').textContent = notes.join(' · ');
+    $('saveAllBtn').disabled = !result.items.length;
+    const box = $('items'); box.replaceChildren();
+    result.items.forEach(item => {
+      const d = item.draft, ai = item.ai;
+      const name = el('input', { value: d.name || '', placeholder: '예: 베이지 니트', maxlength: '50' });
+      const category = select(CATEGORY, d.category, true);
+      const color = el('input', { value: d.color || '', placeholder: '예: 베이지', maxlength: '30' });
+      const warmth = select({ 1: '1 한여름용', 2: '2', 3: '3', 4: '4', 5: '5 한겨울용' }, d.warmth, true);
+      const style = select(STYLE, d.style, true);
+      const water = el('input', { type: 'checkbox' }); water.checked = d.waterproof;
+      const grip = el('input', { type: 'checkbox' }); grip.checked = d.grip;
+      const status = el('div', { class: 'status' });
+      const save = el('button', { class: 'primary', text: '옷장에 저장' });
+      const colorsText = ai.colors.map(c => el('span', {}, el('span', { class: 'swatch', style: 'background:' + c.hex }), c.name + ' ' + Math.round(c.ratio * 100) + '% '));
+      const card = el('div', { class: 'item' },
+        d.imageUrl ? el('img', { class: 'cut', src: d.imageUrl, alt: (d.name || '옷') + ' 배경 제거 사진' }) : el('div', { class: 'cut ph', text: '배경 제거 사진 없음' }),
+        el('div', { class: 'ai' },
+          el('b', { text: `#${item.index} AI 제안 ` }),
+          `종류 ${ai.category || '미정'} (${Math.round(ai.categoryConfidence * 100)}%)`,
+          ai.subtype ? ` · ${ai.subtype}` : '', ai.style ? ` · ${ai.style}` : '', el('br'), ...colorsText,
+          ai.needsReview ? el('div', { class: 'review', text: '확인이 필요한 칸이 있어요' }) : null,
+          ai.warnings.length ? el('div', { class: 'review', text: ai.warnings.join(' ') }) : null),
+        el('label', {}, '이름', name), el('label', {}, '종류', category), el('label', {}, '색상', color),
+        el('label', {}, '보온성', warmth), el('label', {}, '스타일', style),
+        el('div', { class: 'checks' }, el('label', {}, water, ' 방수'), el('label', {}, grip, ' 미끄럼 방지')),
+        save, status);
+      item.save = async () => {
+        if (card.classList.contains('saved')) return true;
+        const body = { name: name.value.trim(), category: category.value || null, color: color.value.trim(),
+          warmth: warmth.value ? Number(warmth.value) : null, style: style.value || null,
+          waterproof: water.checked, grip: grip.checked, imageUrl: d.imageUrl, aiTagged: true };
+        try {
+          await api('/api/clothes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          card.classList.add('saved'); save.disabled = true; status.textContent = '저장했어요.'; status.classList.remove('err');
+          return true;
+        } catch (e) {
+          const fields = e.body?.fieldErrors ? ' (' + Object.keys(e.body.fieldErrors).join(', ') + ' 확인)' : '';
+          status.textContent = e.message + fields; status.classList.add('err'); return false;
+        }
+      };
+      save.onclick = async () => { if (await item.save()) loadCloset(); };
+      box.append(card);
+    });
+  }
+
+  $('saveAllBtn').onclick = async () => {
+    if (!current) return;
+    for (const item of current.items) await item.save();
+    loadCloset();
+  };
+
+  async function loadCloset() {
+    try {
+      const list = await api('/api/clothes');
+      $('closetCount').textContent = `${list.length}벌`;
+      $('closet').replaceChildren(...list.map(c => {
+        const del = el('button', { text: '삭제' });
+        del.onclick = async () => { await api('/api/clothes/' + c.id, { method: 'DELETE' }); loadCloset(); };
+        return el('div', { class: 'garment' },
+          c.imageUrl ? el('img', { class: 'cut', src: c.imageUrl, alt: c.name }) : el('div', { class: 'cut ph', text: '사진 없음' }),
+          el('b', { text: c.name }), el('span', { text: `${CATEGORY[c.category]} · ${c.color} · 보온 ${c.warmth}${c.aiTagged ? ' · AI' : ''}` }), del);
+      }));
+    } catch (e) { $('closetCount').textContent = e.message; }
+  }
+  $('refreshBtn').onclick = loadCloset;
+
+  checkHealth(); setInterval(checkHealth, 15000);
+  if (token) api('/api/me').then(showUser).catch(() => showUser(null)); else showUser(null);
+})();
+</script>
+</body>
+</html>
