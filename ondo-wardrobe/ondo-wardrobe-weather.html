@@ -631,7 +631,7 @@
       color: var(--ink-secondary);
     }
 
-    /* Matched Wardrobe & Pinterest Reference Result */
+    /* Outfit recommendations */
     .result-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
@@ -896,6 +896,7 @@
 .weather-preferences p{margin:0;color:var(--ink-secondary)}
 @media (max-width: 520px) { .outfit-guidance { grid-template-columns: 1fr; gap: 10px; } }
 </style>
+<link rel="stylesheet" href="assets/css/server-ui.css?v=3">
 </head>
 <body>
 
@@ -905,10 +906,15 @@
     <button class="active" id="homeNav">오늘의 코디</button>
     <button id="closetNav">내 옷장</button>
   </nav>
-  <span class="edition" id="headerWeather"></span>
+  <div class="account-actions"><span class="edition" id="headerWeather"></span><button type="button" id="accountButton">로그인</button></div>
 </header>
 
 <main>
+  <dialog id="accountDialog" aria-labelledby="authTitle">
+    <div class="dialog-head"><h2 id="authTitle">온도옷장 시작하기</h2><button type="button" id="closeAccount">닫기</button></div>
+    <div id="authBody"></div><p id="authStatus" role="status"></p>
+  </dialog>
+  <p id="sessionStatus" role="status" hidden></p>
   <section id="home">
     <!-- Hero Section -->
     <div class="hero">
@@ -973,7 +979,7 @@
         <span class="label">01 · 취향 고르기</span>
         <h2>오늘의 분위기를 먼저 골라요</h2>
       </div>
-      <p>원하는 무드와 색감을 선택하면<br>내 옷장 아이템과 스타일 레퍼런스를 매칭해요.</p>
+      <p>원하는 분위기와 색감을 고르면<br>날씨에 맞는 옷장 조합을 보여줘요.</p>
     </div>
 
     <div class="setting-row">
@@ -995,17 +1001,22 @@
       </label>
       <label>오늘 가는 곳
         <select id="purpose">
-          <option value="cafe">동네 · 카페</option>
-          <option value="work">출근 · 미팅</option>
-          <option value="walk">산책 · 야외</option>
+          <option value="daily">일상</option>
+          <option value="date">카페 · 데이트</option>
+          <option value="office">출근 · 미팅</option>
+          <option value="outdoor">산책 · 야외</option>
           <option value="formal">격식 있는 자리</option>
+          <option value="sport">운동</option>
         </select>
       </label>
       <label>원하는 분위기
         <select id="styleMood">
-          <option value="minimal">차분한 미니멀</option>
+          <option value="">장소에 맞춰 추천</option>
           <option value="casual">편안한 캐주얼</option>
           <option value="formal">단정한 포멀</option>
+          <option value="sporty">스포티</option>
+          <option value="street">스트릿</option>
+          <option value="feminine">페미닌</option>
         </select>
       </label>
     </div>
@@ -1015,7 +1026,7 @@
     </label><p id="purposePalette"></p></div>
 
     <div class="recommend-action-bar">
-      <span class="recommend-hint" id="closetDummyCount">현재 테스트용 내 옷장 데이터 12벌이 들어있어요.</span>
+      <span class="recommend-hint" id="closetDummyCount">내 옷장으로 추천받으려면 로그인하거나 게스트로 시작하세요.</span>
       <button class="recommend-submit" id="generateOutfitBtn" disabled>고른 조건으로 코디 추천받기 →</button>
     </div>
 
@@ -1044,7 +1055,7 @@
         <span class="label">MY CLOSET</span>
         <h2>나의 옷장</h2>
       </div>
-      <p>시안 체험 모드 · 새로고침하면 초기화돼요</p>
+      <p>로그인한 계정에 옷과 사진을 저장해요.</p>
     </div>
 
     <label class="upload" id="drop">
@@ -1052,9 +1063,27 @@
       <h2>자주 입는 옷을 담아보세요</h2>
       <p>사진을 끌어놓거나 눌러서 추가하세요</p>
       <small>JPG · PNG · WebP / 한 장당 최대 15MB</small>
-      <input type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="옷 사진 추가">
+      <input type="file" accept="image/jpeg,image/png,image/webp" aria-label="옷 사진 추가">
     </label>
     <p id="uploadStatus" role="status" style="margin-top:14px; font-size:14px; color:var(--accent-brown);"></p>
+    <section class="server-panel" aria-labelledby="analysisTitle">
+      <h3 id="analysisTitle">AI 사진 분석</h3>
+      <p>얼굴이 나오지 않게 찍은 옷 사진을 사용해 주세요.</p>
+      <form id="analysisForm" class="server-fields">
+        <label>분석 방법<select name="mode"><option value="outfit">착용 사진 한 장</option><option value="single">옷 한 벌</option></select></label>
+        <label>원본 사진<input name="file" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+        <button type="submit">사진 분석하기</button>
+      </form>
+      <p id="analysisStatus" role="status"></p>
+      <div id="analysisPreview" class="analysis-preview" hidden></div>
+      <div id="analysisItems" class="analysis-items"></div>
+      <button type="button" id="saveAllDrafts" hidden>모두 저장</button>
+    </section>
+    <dialog id="garmentDialog" aria-labelledby="garmentTitle">
+      <div class="dialog-head"><h2 id="garmentTitle">옷 정보</h2><button id="closeGarment" type="button">닫기</button></div>
+      <div id="garmentEditor"></div>
+    </dialog>
+    <button type="button" id="refreshCloset">옷장 새로고침</button>
     <div id="clothes" class="closet-grid"></div>
     <p id="empty" class="empty">아직 비어 있는 옷장. 좋아하는 옷 한 벌부터 시작해요.</p>
   </section>
@@ -1252,49 +1281,16 @@
   colorSelect.value = capsuleTones[capsuleIdx];
   renderCapsule();
 
-  // Closet Dummy Data (내 옷장에 저장된 옷 더미 데이터)
-  const myClosetDummy = [
-    { id: 1, gender: 'all', category: 'OUTER', name: '모카 브라운 울 카디건', color: 'warm', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'cardigan', bg: '#efe5dc', stroke: '#6e4c36' },
-    { id: 2, gender: 'all', category: 'OUTER', name: '세이지 코튼 오버셔츠', color: 'sage', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk'], icon: 'cardigan', bg: '#e6ede5', stroke: '#3e5949' },
-    { id: 3, gender: 'men', category: 'OUTER', name: '네이비 싱글 울 블레이저', color: 'slate', styles: ['formal', 'minimal'], purposes: ['work', 'cafe'], icon: 'cardigan', bg: '#e2eaf2', stroke: '#2f4861' },
-    { id: 4, gender: 'women', category: 'OUTER', name: '헤링본 체크 테일러드 재킷', color: 'warm', styles: ['formal', 'casual'], purposes: ['work', 'walk'], icon: 'cardigan', bg: '#efe8e0', stroke: '#6b5344' },
-    { id: 5, gender: 'all', category: 'OUTER', name: '차콜 발마칸 코트', color: 'mono', styles: ['minimal', 'formal'], purposes: ['work', 'walk'], icon: 'cardigan', bg: '#e6e6e8', stroke: '#2e2e30' },
-    { id: 6, gender: 'all', category: 'TOP', name: '아이보리 코튼 레이어드 티', color: 'all', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk', 'work'], icon: 'shirt', bg: '#f6f3ee', stroke: '#8c7e72' },
-    { id: 7, gender: 'all', category: 'TOP', name: '오트밀 메리노 터틀넥 니트', color: 'warm', styles: ['minimal', 'formal'], purposes: ['work', 'cafe'], icon: 'shirt', bg: '#f3ede4', stroke: '#7a6552' },
-    { id: 8, gender: 'all', category: 'TOP', name: '스카이블루 옥스포드 셔츠', color: 'slate', styles: ['formal', 'casual'], purposes: ['work', 'cafe'], icon: 'shirt', bg: '#edf3f8', stroke: '#4a6b8a' },
-    { id: 9, gender: 'all', category: 'BOTTOM', name: '와이드 블랙 울 슬랙스', color: 'mono', styles: ['minimal', 'formal'], purposes: ['work', 'cafe'], icon: 'pants', bg: '#e9e7e4', stroke: '#2f2b28' },
-    { id: 10, gender: 'all', category: 'BOTTOM', name: '샌드 베이지 코튼 치노 팬츠', color: 'warm', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk'], icon: 'pants', bg: '#f1ede4', stroke: '#7a705e' },
-    { id: 11, gender: 'women', category: 'BOTTOM', name: '크림 롱 플리츠 스커트', color: 'sage', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'pants', bg: '#f5f6f2', stroke: '#55695b' },
-    { id: 12, gender: 'all', category: 'BOTTOM', name: '딥 인디고 스트레이트 데님', color: 'slate', styles: ['casual'], purposes: ['walk', 'cafe'], icon: 'pants', bg: '#e3e7ee', stroke: '#2b394a' },
-    { id: 13, gender: 'all', category: 'TOP', name: '더스티 로즈 코튼 셔츠', color: 'rose', styles: ['minimal', 'casual'], purposes: ['cafe', 'work'], icon: 'shirt', bg: '#f4e6e7', stroke: '#8e525c' },
-    { id: 14, gender: 'all', category: 'TOP', name: '테라코타 울 니트', color: 'rose', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'shirt', bg: '#f2e4db', stroke: '#9b5137' }
-  ];
-  $('closetDummyCount').textContent = '예시 옷장 ' + myClosetDummy.length + '벌로 추천해요.';
-
-  // Pinterest Mock Reference Database (추후 Pinterest API 연동 시 검색 쿼리로 대체)
-  const pinterestMockRefs = {
-    men: {
-      warm: { path: 'f8/70/3f/f8703fdea69f342e13c999b097ef45f4.jpg', title: '부드러운 브라운 무드', desc: '브라운 카디건 · 블랙 슬랙스 실루엣', pin: '422281209388500', query: 'men brown cardigan minimal outfit' },
-      sage: { path: 'ab/24/02/ab2402fc58249273697f6d9ec35704f2.jpg', title: '차분한 얼스 & 그린 톤', desc: '오버셔츠 · 코튼 팬츠 레이어드', pin: '927249010771235211', query: 'men sage overshirt casual look' },
-      slate: { path: 'ab/24/02/ab2402fc58249273697f6d9ec35704f2.jpg', title: '단정한 네이비 테일러링', desc: '울 블레이저 · 셔츠 포멀 룩', pin: '927249010771235211', query: 'men navy blazer smart casual' },
-      mono: { path: 'f8/70/3f/f8703fdea69f342e13c999b097ef45f4.jpg', title: '절제된 모노크롬 미니멀', desc: '차콜 아우터 · 블랙 팬츠 조합', pin: '422281209388500', query: 'men charcoal monochrome outfit' }
-    },
-    women: {
-      warm: { path: '34/bd/87/34bd87918a4445254f8b814ed18c15df.jpg', title: '포근한 베이지 & 브라운 레이어드', desc: '니트 · 웜톤 슬랙스 코디', pin: '409968372337296992', query: 'women beige knit warm minimal outfit' },
-      sage: { path: 'dd/ed/26/dded26ef520a86e5e389023f9407997e.jpg', title: '일상의 산뜻한 여유', desc: '가벼운 아우터 · 롱 스커트 매치', pin: '21462535719575733', query: 'women sage cardigan long skirt look' },
-      slate: { path: '12/af/36/12af36081fb9cf6ea2da785640e5a990.jpg', title: '깔끔한 데님 & 재킷 믹스', desc: '테일러드 재킷 · 스트레이트 데님', pin: '422281208644025', query: 'women blazer straight denim outfit' },
-      mono: { path: '34/bd/87/34bd87918a4445254f8b814ed18c15df.jpg', title: '모던 차콜 미니멀 룩', desc: '차콜 코트 · 모노톤 이너 레이어드', pin: '409968372337296992', query: 'women charcoal coat minimal fashion' }
-    }
-  };
-
   const cities = {
     서울: [37.57,126.98], 부산: [35.18,129.08], 대구: [35.87,128.60],
     인천: [37.46,126.70], 대전: [36.35,127.38], 광주: [35.16,126.85], 제주: [33.50,126.53]
   };
   const placeTones = {
-    cafe: {tone:'warm', note:'아이보리 · 베이지 · 브라운으로 부드럽게'},
-    work: {tone:'slate', note:'아이보리 · 네이비 · 슬레이트 블루로 단정하게'},
-    walk: {tone:'sage', note:'아이보리 · 세이지로 가볍게'},
+    daily: {tone:'sage', note:'아이보리 · 세이지로 편하게'},
+    sport: {tone:'slate', note:'네이비 · 그레이로 활동하기 편하게'},
+    date: {tone:'warm', note:'아이보리 · 베이지 · 브라운으로 부드럽게'},
+    office: {tone:'slate', note:'아이보리 · 네이비 · 슬레이트 블루로 단정하게'},
+    outdoor: {tone:'sage', note:'아이보리 · 세이지로 가볍게'},
     formal: {tone:'mono', note:'차콜 · 그레이 · 화이트로 차분하게'}
   };
   const conditionLabels = {dry:'비·눈 예보 없음', rain:'비 대비', snow:'눈 대비', unknown:'강수 판단 어려움'};
@@ -1340,13 +1336,13 @@
     const daily = data.daily;
     const i = daily.time.indexOf(data.current.time.slice(0, 10));
     const low = daily.temperature_2m_min[i], high = daily.temperature_2m_max[i];
-    const feel = data.current.apparent_temperature;
-    if (i < 0 || ![low, high, feel].every(Number.isFinite) || low > high) throw new Error('Incomplete forecast');
+    const { apparent_temperature:feel, temperature_2m:temp, wind_speed_10m:wind, cloud_cover:cloud } = data.current;
+    if (i < 0 || ![low, high, feel, temp].every(Number.isFinite) || low > high) throw new Error('Incomplete forecast');
     const rain = daily.rain_sum[i], showers = daily.showers_sum[i], snow = daily.snowfall_sum[i];
     const probability = daily.precipitation_probability_max[i];
     const condition = snow > 0 ? 'snow' : rain > 0 || showers > 0 || probability >= 40
       ? 'rain' : [rain, showers, snow].every(Number.isFinite) ? 'dry' : 'unknown';
-    return {source:city + ' · Open-Meteo 예보', feel, low, high, condition,
+    return {source:city + ' · Open-Meteo 예보', feel, temp, wind, cloud, low, high, condition,
       probability: Number.isFinite(probability) ? probability : null,
       yesterday: Number.isFinite(daily.temperature_2m_max[i-1]) ? daily.temperature_2m_max[i-1] : null};
   }
@@ -1359,7 +1355,7 @@
     const city = $('weatherCity').value;
     const [latitude, longitude] = cities[city];
     const params = new URLSearchParams({latitude, longitude, timezone:'Asia/Seoul', forecast_days:'1', past_days:'1',
-      current:'apparent_temperature', daily:'temperature_2m_min,temperature_2m_max,precipitation_probability_max,rain_sum,showers_sum,snowfall_sum'});
+      wind_speed_unit:'ms', current:'temperature_2m,apparent_temperature,wind_speed_10m,cloud_cover', daily:'temperature_2m_min,temperature_2m_max,precipitation_probability_max,rain_sum,showers_sum,snowfall_sum'});
     forecast = null;
     $('generateOutfitBtn').disabled = true;
     $('loadWeather').disabled = true;
@@ -1370,7 +1366,8 @@
     $('weatherSummary').textContent = '';
     $('weatherAdvice').textContent = '';
     $('capsuleTip').textContent = city + ' 날씨를 불러오는 중이에요.';
-    $('recommendationArea').innerHTML = '';
+    $('recommendationArea').replaceChildren();
+    window.dispatchEvent(new Event('ondo-weather-change'));
     $('weatherStatus').textContent = city + ' 예보를 불러오는 중이에요.';
     try {
       const response = await fetch('https://api.open-meteo.com/v1/forecast?' + params, {signal:request.signal});
@@ -1404,33 +1401,6 @@
   });
   paintWeather();
 
-  const garmentWarmth = {
-    1:2, 2:1, 3:2, 4:2, 5:3, 6:1, 7:3, 8:1, 9:2, 10:1, 11:1, 12:2, 13:1, 14:3
-  };
-  const sampleCutoutUrls = {
-    5: 'wardrobe-cutouts/charcoal-coat.png',
-    7: 'wardrobe-cutouts/oatmeal-turtleneck.png',
-    12: 'wardrobe-cutouts/indigo-jeans.png'
-  };
-
-  function renderGarmentPhoto(item) {
-    const url = item.cutoutUrl || sampleCutoutUrls[item.id];
-    const slot = document.createElement('div');
-    slot.className = 'outfit-garment-photo';
-    function showIcon() {
-      slot.innerHTML = '<span class="garment-icon" aria-hidden="true">' + svgIcons[item.icon] + '</span>';
-    }
-    if (url) {
-      const image = document.createElement('img');
-      image.alt = item.name;
-      image.addEventListener('error', showIcon, { once: true });
-      image.src = url;
-      slot.append(image);
-    } else {
-      showIcon();
-    }
-    return slot;
-  }
   function activeTone() {
     return colorSelect.value === 'auto' ? placeTones[$('purpose').value].tone : colorSelect.value;
   }
@@ -1442,156 +1412,11 @@
     else $('capsuleTip').textContent = $('weatherStatus').textContent;
   }
 
-  function pickClosetItem(category, gender, colorTone, purpose, styleMood, targetWarmth) {
-    const pool = myClosetDummy.filter(item =>
-      item.category === category && (item.gender === 'all' || item.gender === gender)
-    );
-    const minimum = (category === 'OUTER' && targetWarmth >= 2) || targetWarmth === 3;
-    function score(item) {
-      const warmth = garmentWarmth[item.id];
-      const missesWeather = minimum ? warmth < targetWarmth : warmth > targetWarmth;
-      const palette = item.color === colorTone ? 30
-        : item.color === 'all' || item.color === 'mono' || (colorTone === 'rose' && item.color === 'warm') ? 12 : 0;
-      const occasion = item.purposes.includes(purpose) || (purpose === 'formal' && item.styles.includes('formal'));
-      return palette - (missesWeather ? 60 : 0) - 4 * Math.abs(warmth - targetWarmth)
-        + (occasion ? 2 : 0) + (item.styles.includes(styleMood) ? 2 : 0);
-    }
-    return pool.sort((a, b) => score(b) - score(a))[0];
-  }
-
   colorSelect.onchange = syncPalette;
   $('purpose').onchange = syncPalette;
-
-  function generateRecommendation() {
-    if (!forecast) return;
-    const gender = $('gender').value;
-    const purpose = $('purpose').value;
-    const colorTone = activeTone();
-    const palette = capsules[capsuleTones.indexOf(colorTone)];
-    const plan = clothingPlan(forecast, $('sensitivity').value);
-    const styleMood = $('styleMood').value;
-
-    const genderLabel = $('gender').selectedOptions[0].text;
-    const colorLabel = palette.paletteName;
-    const purposeLabel = $('purpose').selectedOptions[0].text;
-    const styleLabel = $('styleMood').selectedOptions[0].text;
-
-    // 1. 내 옷장 더미 데이터에서 아우터/상의/하의 조합 추출
-    const matchedOuter = plan.outer ? pickClosetItem('OUTER', gender, colorTone, purpose, styleMood, plan.warmth) : null;
-    const mildAfternoon = forecast.high + Number($('sensitivity').value) >= 18;
-    const innerWarmth = mildAfternoon ? 1 : plan.warmth;
-    const matchedTop = pickClosetItem('TOP', gender, colorTone, purpose, styleMood, innerWarmth);
-    const matchedBottom = pickClosetItem('BOTTOM', gender, colorTone, purpose, styleMood, mildAfternoon ? 1 : Math.min(plan.warmth, 2));
-    const outfit = [matchedOuter, matchedTop, matchedBottom].filter(Boolean);
-    const hasThemeColor = outfit.some(item => item.color === colorTone);
-    const outerNote = !hasThemeColor
-      ? '오늘 날씨에 맞고 테마 색과도 일치하는 옷이 없어, 함께 입기 좋은 색으로 조합했어요.'
-      : matchedOuter && matchedOuter.color !== colorTone
-        ? '겉옷은 보온성을 우선하고, 테마 색은 다른 옷에 반영했어요.' : '';
-    const categoryLabels = { OUTER: '겉옷', TOP: '상의', BOTTOM: '하의' };
-
-    // 2. 조건에 맞는 핀터레스트 레퍼런스 매칭
-    const ref = pinterestMockRefs[gender][colorTone];
-
-    $('recommendationArea').innerHTML = `
-      <div class="result-grid${ref ? '' : ' result-no-reference'}">
-        <div class="wardrobe-match-box">
-          <div>
-            <div class="match-meta">
-              <span class="label">예시 옷장 조합 결과</span>
-              <span class="match-chip">${purposeLabel} · ${styleLabel}</span>
-            </div>
-            <h3 style="margin:0 0 6px; font-size:20px; font-weight:700; letter-spacing:-0.4px;">오늘의 코디 조합</h3>
-            <p style="margin:0 0 20px; font-size:13.5px; color:var(--ink-secondary);">
-              <strong>${colorLabel}</strong> 테마 · ${genderLabel} · 체감 ${Math.round(forecast.feel)}°C
-            </p>
-            <div class="palette-dots result-palette" aria-label="${colorLabel}">
-              ${palette.colors.map(color => `<span style="background:${color}"></span>`).join('')}
-            </div>
-            ${outerNote ? `<p class="result-weather-note">${outerNote}</p>` : ''}
-            <div class="garment-stack">
-              ${outfit.map(item => `
-                <div class="garment-item">
-                  <div data-outfit-photo></div>
-                  <div class="garment-info">
-                    <strong>${item.name}</strong>
-                    <span>예시 옷장 아이템</span>
-                  </div>
-                  <span class="garment-tag">${categoryLabels[item.category]}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          <div class="outfit-guidance">
-            <section><h4>겉옷 · 레이어드</h4><p>${plan.text}</p></section>
-            <section><h4>오늘의 신발</h4><p>${footwear[forecast.condition]}</p></section>
-          </div>
-        </div>
-
-        ${ref ? `<div class="result-reference">
-          <article class="look">
-            <a target="_blank" rel="noopener noreferrer" href="https://www.pinterest.com/pin/${ref.pin}/">
-              <div class="look-img-wrap">
-                <img src="https://i.pinimg.com/originals/${ref.path}" alt="${ref.desc}">
-              </div>
-              <div class="look-body">
-                <small>스타일 참고 예시 · Pinterest</small>
-                <h3>${ref.title}</h3>
-                <p>${ref.desc}</p>
-              </div>
-            </a>
-          </article>
-        </div>` : ''}
-      </div>
-    `;
-    $('recommendationArea').querySelectorAll('[data-outfit-photo]').forEach((placeholder, index) => {
-      placeholder.replaceWith(renderGarmentPhoto(outfit[index]));
-    });
-  }
-
-  $('generateOutfitBtn').onclick = generateRecommendation;
   loadWeather();
-
-  // Closet File Upload
-  function upload(files) {
-    let rejected = 0;
-    for (const file of files) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 15 * 1024 * 1024) {
-        rejected++;
-        continue;
-      }
-      const card = document.createElement('article');
-      const image = document.createElement('img');
-      const name = document.createElement('p');
-      const remove = document.createElement('button');
-      const url = URL.createObjectURL(file);
-
-      image.src = url;
-      image.alt = file.name;
-      name.textContent = file.name;
-      remove.textContent = '옷장에서 빼기';
-      remove.onclick = () => {
-        URL.revokeObjectURL(url);
-        card.remove();
-        $('empty').hidden = $('clothes').children.length > 0;
-      };
-      card.append(image, name, remove);
-      $('clothes').append(card);
-    }
-    $('empty').hidden = $('clothes').children.length > 0;
-    $('uploadStatus').textContent = rejected
-      ? '일부 파일은 지원하지 않는 형식이거나 15MB를 초과해 제외되었어요.'
-      : '옷장에 옷을 담았어요. 새로고침하면 초기화되는 시안 모드입니다.';
-  }
-
-  document.querySelector('input[type=file]').onchange = e => upload(e.target.files);
-  $('drop').ondragover = e => { e.preventDefault(); $('drop').classList.add('drag'); };
-  $('drop').ondragleave = () => $('drop').classList.remove('drag');
-  $('drop').ondrop = e => {
-    e.preventDefault();
-    $('drop').classList.remove('drag');
-    upload(e.dataTransfer.files);
-  };
 </script>
+<script src="assets/js/server-api.js"></script>
+<script src="assets/js/server-ui.js?v=3"></script>
 </body>
 </html>
