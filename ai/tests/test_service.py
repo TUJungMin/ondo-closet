@@ -1,5 +1,8 @@
 """FastAPI 연결부 확인. 모델을 올리지 않는 경로만 다룬다."""
 
+import threading
+import time
+
 import pytest
 
 pytest.importorskip("fastapi")
@@ -25,6 +28,77 @@ def _request(pinned_id=2):
 
 def test_health():
     assert client.get("/ai/health").json() == {"status": "ok"}
+
+
+class _FakeAnalyzer:
+    """모델 대신 쓰는 가짜. warmup이 release가 풀릴 때까지 끝나지 않게 해 '올리는 중'을 만든다."""
+
+    device = "cpu"
+
+    def __init__(self, error=None):
+        self.calls = []
+        self.started = threading.Event()
+        self.release = threading.Event()
+        self.error = error
+
+    def warmup(self, outfit=False):
+        self.calls.append(outfit)
+        self.started.set()
+        assert self.release.wait(5)
+        if self.error:
+            raise self.error
+
+
+def _wait_until_ok(http, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if http.get("/ai/health").json() == {"status": "ok"}:
+            return True
+        time.sleep(0.01)
+    return False
+
+
+def test_startup_does_not_warm_up_by_default(monkeypatch):
+    monkeypatch.delenv("ONDO_WARMUP", raising=False)
+    fake = _FakeAnalyzer()
+    monkeypatch.setattr("ondo_ai.vision.get_analyzer", lambda: fake)
+    with TestClient(app) as started:
+        assert started.get("/ai/health").json() == {"status": "ok"}
+    assert fake.calls == []
+
+
+def test_startup_warmup_reports_loading_then_ok(monkeypatch):
+    monkeypatch.setenv("ONDO_WARMUP", "outfit")
+    fake = _FakeAnalyzer()
+    monkeypatch.setattr("ondo_ai.vision.get_analyzer", lambda: fake)
+    with TestClient(app) as started:
+        assert fake.started.wait(5)
+        assert started.get("/ai/health").json() == {"status": "loading"}
+        # 추천은 모델을 쓰지 않으므로 올리는 중에도 응답한다
+        assert started.post("/ai/recommend", json=_request()).status_code == 200
+        fake.release.set()
+        assert _wait_until_ok(started)
+    assert fake.calls == [True]  # 검출 모델까지: warmup(outfit=True)
+
+
+def test_startup_warmup_failure_still_ends_ok(monkeypatch):
+    monkeypatch.setenv("ONDO_WARMUP", "outfit")
+    fake = _FakeAnalyzer(error=RuntimeError("가중치를 내려받지 못함"))
+    monkeypatch.setattr("ondo_ai.vision.get_analyzer", lambda: fake)
+    with TestClient(app) as started:
+        assert fake.started.wait(5)
+        assert started.get("/ai/health").json() == {"status": "loading"}
+        fake.release.set()
+        assert _wait_until_ok(started)
+
+
+def test_unknown_warmup_value_is_ignored(monkeypatch):
+    monkeypatch.setenv("ONDO_WARMUP", "yes")
+    fake = _FakeAnalyzer()
+    monkeypatch.setattr("ondo_ai.vision.get_analyzer", lambda: fake)
+    with TestClient(app) as started:
+        assert started.get("/ai/health").json() == {"status": "ok"}
+    assert fake.calls == []
 
 
 def test_recommend_over_http():

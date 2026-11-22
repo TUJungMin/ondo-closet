@@ -99,12 +99,16 @@ class _Candidate:
     diurnal_bonus: bool = False
     was_rejected: bool = False
     place_misfits: int = 0
+    _ids: Optional[frozenset[str]] = field(default=None, repr=False)
 
     def items(self) -> list[Garment]:
         return [g for g in (self.top, self.bottom, self.outer, self.shoes) if g is not None]
 
     def ids(self) -> frozenset[str]:
-        return outfit_key(g.id for g in self.items())
+        # 조합의 옷은 만든 뒤 바뀌지 않는다. 서로 다른 추천을 고를 때 수만 번 불리므로 한 번만 만든다.
+        if self._ids is None:
+            self._ids = outfit_key(g.id for g in self.items())
+        return self._ids
 
 
 def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
