@@ -1,0 +1,1597 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>온도옷장 — 나의 옷으로, 오늘답게</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap">
+  <style>
+    :root {
+      --bg-base: #faf9f6;
+      --bg-surface: #f2eee7;
+      --bg-card: #ffffff;
+      --ink-primary: #241f1c;
+      --ink-secondary: #685e56;
+      --ink-muted: #948980;
+      --accent-brown: #5e422e;
+      --accent-warm: #c59b76;
+      --accent-soft: #f5efe8;
+      --hero-glow: rgba(197, 155, 118, 0.14);
+      --hero-grad: #eae1d6;
+      --border-light: #e4ded6;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 12px 28px -12px rgba(36, 31, 28, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg-base);
+      color: var(--ink-primary);
+      font: 15px/1.6 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      word-break: keep-all;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.4s ease, color 0.3s ease;
+    }
+    .num {
+      font-family: 'Plus Jakarta Sans', 'Pretendard Variable', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, select, input { font: inherit; color: inherit; }
+    button, a { cursor: pointer; }
+    button { background: none; border: 0; padding: 0; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Header */
+    header {
+      height: 84px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6vw;
+      position: sticky;
+      top: 0;
+      background: rgba(250, 249, 246, 0.88);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+    }
+    .brand {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -1.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .brand span {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+      transition: background-color 0.45s ease;
+    }
+    nav { display: flex; gap: 36px; height: 100%; }
+    nav button {
+      height: 100%;
+      color: var(--ink-secondary);
+      font-weight: 500;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+    nav button:hover { color: var(--ink-primary); }
+    nav button.active {
+      color: var(--ink-primary);
+      font-weight: 600;
+    }
+    nav button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--ink-primary);
+    }
+    .edition {
+      font-family: 'Plus Jakarta Sans', 'Pretendard Variable', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      color: var(--ink-muted);
+    }
+
+    /* Main Container */
+    main { max-width: 1360px; margin: auto; padding: 40px 6vw 60px; }
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--accent-brown);
+      display: block;
+      transition: color 0.4s ease;
+    }
+
+    /* Hero Section */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      min-height: 510px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+      transition: background-color 0.4s ease, border-color 0.4s ease;
+    }
+    .hero-copy {
+      padding: 56px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    h1 {
+      font-size: clamp(32px, 3.3vw, 46px);
+      line-height: 1.26;
+      letter-spacing: -1.4px;
+      font-weight: 700;
+      margin: 12px 0 18px;
+      color: var(--ink-primary);
+    }
+    .hero-sub {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.2px;
+      color: var(--accent-brown);
+      margin-bottom: 14px;
+      display: block;
+      transition: color 0.4s ease;
+    }
+    .hero-copy p {
+      color: var(--ink-secondary);
+      margin: 0 0 32px;
+      font-size: 15.5px;
+      line-height: 1.68;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .solid {
+      background: var(--accent-brown);
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14.5px;
+      transition: transform 0.15s ease, background-color 0.4s ease;
+    }
+    .solid:hover {
+      filter: brightness(0.92);
+      transform: translateY(-1px);
+    }
+    .ghost-btn {
+      padding: 13px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-card);
+      color: var(--ink-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .ghost-btn:hover {
+      border-color: var(--ink-secondary);
+    }
+
+    /* Cozy Wardrobe Capsule Showcase (Right Side of Hero) */
+    .hero-showcase {
+      position: relative;
+      padding: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--hero-grad);
+      overflow: hidden;
+      transition: background-color 0.4s ease;
+    }
+
+    .capsule-stage {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Main Lookbook Card */
+    .capsule-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+    }
+    .capsule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 18px;
+    }
+    .capsule-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-brown);
+      background: var(--accent-soft);
+      padding: 5px 11px;
+      border-radius: 8px;
+      transition: color 0.4s ease, background-color 0.4s ease;
+    }
+    .capsule-badge i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+      display: inline-block;
+      transition: background-color 0.4s ease;
+    }
+    .capsule-temp {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--ink-muted);
+    }
+
+    /* Main Container */
+    main { max-width: 1360px; margin: auto; padding: 40px 6vw 60px; }
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2.2px;
+      color: var(--accent-brown);
+      text-transform: uppercase;
+      display: block;
+      transition: color 0.45s ease;
+    }
+
+    /* Hero Section - Replaced Static Photo with Cozy Interactive Wardrobe & Mood Showcase */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      min-height: 540px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+      transition: background-color 0.45s ease, border-color 0.45s ease;
+    }
+    .hero-copy {
+      padding: 60px 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    h1 {
+      font-size: clamp(32px, 3.4vw, 50px);
+      line-height: 1.28;
+      letter-spacing: -1.6px;
+      font-weight: 700;
+      margin: 16px 0 20px;
+      color: var(--ink-primary);
+    }
+    h1 em {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 0.72em;
+      letter-spacing: -0.4px;
+      color: var(--accent-brown);
+      display: inline-block;
+      margin-top: 6px;
+      transition: color 0.45s ease;
+    }
+    .hero-copy p {
+      color: var(--ink-secondary);
+      margin: 0 0 36px;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .solid {
+      background: var(--accent-brown);
+      color: #fff;
+      padding: 16px 28px;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: 15px;
+      transition: transform 0.2s ease, background-color 0.45s ease, box-shadow 0.45s ease;
+      box-shadow: 0 10px 20px -8px rgba(40, 40, 40, 0.28);
+    }
+    .solid:hover {
+      filter: brightness(0.9);
+      transform: translateY(-2px);
+    }
+    .ghost-btn {
+      padding: 15px 22px;
+      border-radius: 999px;
+      border: 1px solid #cfc5ba;
+      color: var(--ink-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .ghost-btn:hover {
+      background: rgba(255, 255, 255, 0.6);
+      border-color: var(--ink-primary);
+    }
+
+    /* Cozy Editorial Collage / Wardrobe Capsule Showcase (Right Side of Hero) */
+    .hero-showcase {
+      position: relative;
+      padding: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 75% 25%, var(--hero-grad) 0%, var(--bg-surface) 68%);
+      overflow: hidden;
+      transition: background 0.45s ease;
+    }
+    /* Subtle organic warm glow */
+    .hero-showcase::before {
+      content: '';
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: var(--hero-glow);
+      filter: blur(45px);
+      top: -40px;
+      right: -40px;
+      pointer-events: none;
+      transition: background-color 0.45s ease;
+    }
+
+    .capsule-stage {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Main Floating Lookbook Card */
+    .capsule-card {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.35s ease;
+    }
+    .capsule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border-light);
+      margin-bottom: 20px;
+    }
+    .capsule-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-brown);
+      background: var(--accent-soft);
+      padding: 5px 12px;
+      border-radius: 999px;
+      transition: color 0.45s ease, background-color 0.45s ease;
+    }
+    .capsule-badge i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-warm);
+      display: inline-block;
+      transition: background-color 0.45s ease;
+    }
+    .capsule-temp {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+
+    /* Cozy Garment Illustration List inside Card */
+    .garment-stack {
+      display: grid;
+      gap: 12px;
+    }
+    .garment-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #faf8f5;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid #ede7df;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .garment-item:hover {
+      transform: translateX(4px);
+      border-color: #d4c6b8;
+    }
+    .garment-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .garment-info { flex: 1; min-width: 0; }
+    .garment-info strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+    .garment-info span {
+      font-size: 12px;
+      color: var(--ink-secondary);
+    }
+    .garment-tag {
+      font-size: 11px;
+      color: var(--ink-muted);
+      background: #fff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #ebe5dd;
+    }
+
+    /* Color Swatch & Mood Footer inside Showcase */
+    .capsule-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #f0ebe4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .palette-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .palette-dots span {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .palette-label {
+      font-size: 12px;
+      color: var(--ink-secondary);
+      margin-left: 4px;
+    }
+    .shuffle-mood-btn {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-brown);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 12px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      transition: background-color 0.35s ease, color 0.35s ease, transform 0.15s ease;
+    }
+    .shuffle-mood-btn:hover { filter: brightness(0.95); }
+    .shuffle-mood-btn:active { transform: scale(0.96); }
+
+    /* Floating Mini Note Pill */
+    .floating-note {
+      margin-top: 14px;
+      background: var(--accent-brown);
+      color: #faf8f5;
+      padding: 13px 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 12px 24px -10px rgba(35, 35, 35, 0.25);
+      transition: background-color 0.45s ease;
+    }
+    .floating-note span { color: rgba(255, 255, 255, 0.72); font-size: 12px; }
+
+    /* Weather Bar */
+    .weather {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      padding: 24px 28px;
+      margin-top: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      transition: border-color 0.45s ease;
+    }
+    .weather-loc {
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--ink-secondary);
+      font-weight: 500;
+    }
+    .weather strong {
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: -1px;
+      color: var(--accent-brown);
+      transition: color 0.45s ease;
+    }
+    .weather p { margin: 0; font-size: 14px; color: var(--ink-primary); }
+    .weather .weather-right { margin-left: auto; text-align: right; }
+    .weather span { font-size: 13px; color: var(--ink-muted); }
+
+    /* Section Head */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin: 68px 0 28px;
+    }
+    .section-head h2 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.8px;
+      margin: 6px 0 0;
+    }
+    .section-head p { font-size: 14px; margin: 0; color: var(--ink-secondary); text-align: right; }
+
+    /* Filter Row */
+    .setting-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      padding: 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+    }
+    .recommend-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .recommend-hint {
+      font-size: 13px;
+      color: var(--ink-secondary);
+    }
+    .recommend-submit {
+      background: var(--accent-brown);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s ease, background-color 0.45s ease;
+    }
+    .recommend-submit:hover {
+      filter: brightness(0.92);
+      transform: translateY(-1px);
+    }
+
+    /* Empty / Waiting State before Selection */
+    .recommend-placeholder {
+      background: var(--bg-surface);
+      border: 1.5px dashed var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 56px 24px;
+      text-align: center;
+      transition: background-color 0.45s ease;
+    }
+    .recommend-placeholder strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ink-primary);
+    }
+    .recommend-placeholder p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink-secondary);
+    }
+
+    /* Matched Wardrobe & Pinterest Reference Result */
+    .result-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: clamp(20px, 3vw, 36px);
+      align-items: stretch;
+      padding: clamp(18px, 3vw, 32px);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+    }
+    .wardrobe-match-box {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .wardrobe-match-box .garment-item {
+      min-height: 110px;
+      gap: 14px;
+    }
+    .outfit-garment-photo {
+      display: grid;
+      place-items: center;
+      flex: 0 0 92px;
+      width: 92px;
+      height: 92px;
+      padding: 7px;
+      border-radius: 12px;
+      background: var(--bg-card);
+    }
+    .outfit-garment-photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .outfit-garment-photo .garment-icon {
+      background: transparent;
+    }
+    .match-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-bottom: 18px;
+    }
+    .match-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-brown);
+    }
+    .outfit-guidance {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .outfit-guidance section {
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--bg-surface);
+    }
+    .outfit-guidance h4 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      color: var(--ink-primary);
+    }
+    .outfit-guidance p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink-secondary);
+      line-height: 1.65;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+    }
+    select {
+      width: 100%;
+      padding: 10px 4px;
+      background: transparent;
+      border: 0;
+      border-bottom: 1.5px solid #d5cbc0;
+      border-radius: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink-primary);
+      transition: border-color 0.2s;
+    }
+    select:focus { outline: none; border-color: var(--accent-brown); }
+
+    /* Look Cards */
+    .result-no-reference { grid-template-columns: minmax(0, 1fr); }
+    .result-palette { margin-bottom: 16px; }
+    .result-weather-note { color: var(--ink-secondary); font-size: 14px; }
+    .result-reference { min-width: 0; display: flex; }
+    .result-reference .look { display: flex; width: 100%; }
+    .result-reference .look > a {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .look-img-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      height: clamp(280px, 38vw, 470px);
+      flex: 1 0 auto;
+    }
+    .look img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .look-body { padding: 14px 0 0; }
+    .look small { font-size: 11px; letter-spacing: 1px; color: var(--ink-muted); font-weight: 600; }
+    .look h3 { font-weight: 600; font-size: 18px; margin: 6px 0 4px; }
+    .look p { font-size: 14px; margin: 0; color: var(--ink-secondary); }
+
+    /* Closet Promo Banner */
+    .closet-promo {
+      display: grid;
+      grid-template-columns: 1.4fr 0.6fr;
+      background: var(--accent-brown);
+      color: #fff;
+      border-radius: var(--radius-lg);
+      margin: 72px 0 28px;
+      padding: 48px 52px;
+      gap: 30px;
+      align-items: center;
+      transition: background-color 0.45s ease;
+    }
+    .closet-promo h2 {
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: -0.8px;
+      margin: 12px 0;
+    }
+    .closet-promo p { color: rgba(255, 255, 255, 0.82); font-size: 15px; margin: 0; }
+    .closet-promo button {
+      background: #ffffff;
+      color: var(--accent-brown);
+      justify-self: end;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14.5px;
+      transition: transform 0.15s, color 0.4s ease;
+    }
+    .closet-promo button:hover {
+      transform: translateY(-1px);
+    }
+    .closet-promo button:hover {
+      background: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    /* Closet Upload Section */
+    .upload {
+      border: 1.5px dashed #bfa994;
+      border-radius: var(--radius-lg);
+      min-height: 310px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: var(--bg-surface);
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .upload:hover, .upload.drag {
+      background: #eae2d6;
+      border-color: var(--accent-brown);
+    }
+    .upload input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .upload b { font-size: 42px; font-weight: 300; color: #8c6b4f; line-height: 1; }
+    .upload h2 { font-weight: 600; font-size: 20px; margin: 12px 0 6px; }
+    .upload p { margin: 0 0 8px; color: var(--ink-secondary); }
+    .upload small { color: var(--ink-muted); }
+
+    .closet-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .closet-grid article {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+    .closet-grid img {
+      width: 100%;
+      height: 220px;
+      object-fit: contain;
+      background: #f5f2ed;
+      border-radius: 8px;
+    }
+    .closet-grid p { font-size: 13px; margin: 10px 0 6px; overflow-wrap: anywhere; }
+    .closet-grid button { font-size: 12px; color: var(--ink-secondary); text-decoration: underline; }
+    .empty { text-align: center; padding: 36px; color: var(--ink-muted); }
+
+    /* Footer */
+    footer {
+      margin-top: 64px;
+      padding: 28px 0;
+      border-top: 1px solid var(--border-light);
+      color: var(--ink-muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    [hidden] { display: none !important; }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-copy { padding: 44px 32px; }
+      .hero-showcase { padding: 32px 24px 44px; }
+      .result-grid { grid-template-columns: minmax(0, 1fr); }
+      .result-reference {
+        border-top: 1px solid var(--border-light);
+        padding-top: 20px;
+      }
+    }
+    @media (max-width: 760px) {
+      header { height: 72px; }
+      .edition { display: none; }
+      nav { gap: 20px; }
+      .setting-row { grid-template-columns: 1fr 1fr; }
+      .look-img-wrap { height: 300px; }
+      .weather { flex-wrap: wrap; gap: 14px; }
+      .weather-right { display: none; }
+      .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .section-head p { text-align: left; }
+      .closet-promo { grid-template-columns: 1fr; padding: 32px 24px; }
+      .closet-promo button { justify-self: start; }
+      .closet-grid { grid-template-columns: 1fr 1fr; }
+    }
+  .weather.weather-live{display:block;margin-block:24px;padding:24px}
+.weather-now,.weather-controls,.weather-preferences{display:flex;align-items:end;flex-wrap:wrap;gap:14px}
+.weather-now{justify-content:space-between}
+.weather-live label,.weather-preferences label{display:grid;gap:6px;font-size:14px}
+.weather-live button{min-height:42px}
+.weather-controls button { background: var(--accent-brown); color: #fff; border-radius: 10px; padding: 8px 14px; }
+.weather-controls button:disabled, .recommend-submit:disabled { opacity: .55; cursor: wait; }
+#weatherStatus:empty{display:none}
+.weather-preferences{margin:18px 0;justify-content:space-between}
+.weather-preferences p{margin:0;color:var(--ink-secondary)}
+@media (max-width: 520px) { .outfit-guidance { grid-template-columns: 1fr; gap: 10px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">온도옷장<span></span></div>
+  <nav>
+    <button class="active" id="homeNav">오늘의 코디</button>
+    <button id="closetNav">내 옷장</button>
+  </nav>
+  <span class="edition" id="headerWeather"></span>
+</header>
+
+<main>
+  <section id="home">
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="label">매일 아침 옷장 고민 줄이기</span>
+        <h1>나만의 작은<br>옷장 도우미</h1>
+        <span class="hero-sub">Your daily outfit buddy.</span>
+        <p>오늘 뭐 입을지 막막할 때, 날씨랑 기분만 골라보세요.<br>이미 내 옷장에 있는 옷들로 딱 맞는 조합을 찾아드려요.</p>
+        <div class="hero-actions">
+          <button class="solid" id="start">내 옷장 채우기</button>
+          <button class="ghost-btn" id="scrollCurated">오늘 코디 고르기 ↓</button>
+        </div>
+      </div>
+
+      <!-- Replaced Static Hero Photo with Cozy Interactive Capsule Wardrobe Widget -->
+      <div class="hero-showcase">
+        <div class="capsule-stage">
+          <div class="capsule-card">
+            <div class="capsule-header">
+              <span class="capsule-badge"><i></i><span id="capsuleMoodTitle">세이지 & 아이보리 · 18°C</span></span>
+              <span class="capsule-temp num" id="capsuleCode">01 / 05</span>
+            </div>
+
+            <div class="garment-stack" id="capsuleItems">
+              <!-- Populated dynamically by JS -->
+            </div>
+
+            <div class="capsule-footer">
+              <div class="palette-dots" id="capsulePalette"></div>
+              <button class="shuffle-mood-btn" id="shuffleCapsule" title="다음 컬러 테마 선택">
+                ↻ 오늘의 컬러 바꾸기
+              </button>
+            </div>
+          </div>
+
+          <div class="floating-note">
+            <div id="capsuleTip">일교차 11°C · 얇은 니트 위에 카디건을 툭 걸쳐보세요.</div>
+            <span class="num">MEMO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="weather weather-live" aria-label="오늘 날씨">
+      <div class="weather-now">
+        <div><span id="weatherSource" class="weather-loc">서울 · 오늘 날씨</span>
+        <div><strong id="weatherFeel" class="num">—</strong> 체감 기온</div></div>
+        <p id="weatherSummary"></p>
+      </div>
+      <p id="weatherAdvice"></p>
+      <div class="weather-controls">
+        <label>도시 <select id="weatherCity"></select></label>
+        <button type="button" id="loadWeather">오늘 날씨 불러오기</button>
+
+      </div>
+      <p id="weatherStatus" role="status"></p>
+    </section>
+
+    <!-- Curated Looks Section -->
+    <div class="section-head" id="curatedSection">
+      <div>
+        <span class="label">01 · 취향 고르기</span>
+        <h2>오늘의 분위기를 먼저 골라요</h2>
+      </div>
+      <p>원하는 무드와 색감을 선택하면<br>내 옷장 아이템과 스타일 레퍼런스를 매칭해요.</p>
+    </div>
+
+    <div class="setting-row">
+      <label>성별 · 핏 기준
+        <select id="gender">
+          <option value="men">남성 코디</option>
+          <option value="women">여성 코디</option>
+        </select>
+      </label>
+      <label>메인 색상 톤
+        <select id="colorTone">
+          <option value="auto">외출 장소에 맞춰 추천</option>
+          <option value="rose">테라코타 · 로즈</option>
+          <option value="warm">웜 브라운 · 베이지</option>
+          <option value="sage">세이지 그린 · 아이보리</option>
+          <option value="slate">네이비 · 슬레이트 블루</option>
+          <option value="mono">차콜 · 모노크롬</option>
+        </select>
+      </label>
+      <label>오늘 가는 곳
+        <select id="purpose">
+          <option value="cafe">동네 · 카페</option>
+          <option value="work">출근 · 미팅</option>
+          <option value="walk">산책 · 야외</option>
+          <option value="formal">격식 있는 자리</option>
+        </select>
+      </label>
+      <label>원하는 분위기
+        <select id="styleMood">
+          <option value="minimal">차분한 미니멀</option>
+          <option value="casual">편안한 캐주얼</option>
+          <option value="formal">단정한 포멀</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="weather-preferences"><label>추위·더위 민감도
+      <select id="sensitivity"><option value="-3">추위를 많이 타요</option><option value="0" selected>보통이에요</option><option value="3">더위를 많이 타요</option></select>
+    </label><p id="purposePalette"></p></div>
+
+    <div class="recommend-action-bar">
+      <span class="recommend-hint" id="closetDummyCount">현재 테스트용 내 옷장 데이터 12벌이 들어있어요.</span>
+      <button class="recommend-submit" id="generateOutfitBtn" disabled>고른 조건으로 코디 추천받기 →</button>
+    </div>
+
+    <div id="recommendationArea">
+      <div class="recommend-placeholder">
+        <strong>아직 고른 조건이 없어요</strong>
+        <p>날씨와 원하는 조건을 확인한 뒤 추천받기 버튼을 눌러보세요.</p>
+      </div>
+    </div>
+
+    <!-- Closet Promo Banner -->
+    <div class="closet-promo">
+      <div>
+        <span class="label" style="color:rgba(255,255,255,0.75)">내 옷장 등록하기</span>
+        <h2>새 옷 사기 전에,<br>가진 옷부터 꺼내 입어요.</h2>
+        <p>자주 입는 옷 몇 벌만 올려두면 날씨에 맞춰 바로 입을 조합을 골라드려요.</p>
+      </div>
+      <button id="add">내 옷장 채우기</button>
+    </div>
+  </section>
+
+  <!-- Closet Tab Section -->
+  <section id="closet" hidden>
+    <div class="section-head" style="margin-top:16px">
+      <div>
+        <span class="label">MY CLOSET</span>
+        <h2>나의 옷장</h2>
+      </div>
+      <p>시안 체험 모드 · 새로고침하면 초기화돼요</p>
+    </div>
+
+    <label class="upload" id="drop">
+      <b>＋</b>
+      <h2>자주 입는 옷을 담아보세요</h2>
+      <p>사진을 끌어놓거나 눌러서 추가하세요</p>
+      <small>JPG · PNG · WebP / 한 장당 최대 15MB</small>
+      <input type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="옷 사진 추가">
+    </label>
+    <p id="uploadStatus" role="status" style="margin-top:14px; font-size:14px; color:var(--accent-brown);"></p>
+    <div id="clothes" class="closet-grid"></div>
+    <p id="empty" class="empty">아직 비어 있는 옷장. 좋아하는 옷 한 벌부터 시작해요.</p>
+  </section>
+
+  <footer>
+    <span>온도옷장.　YOUR CLOTHES, YOUR DAY.</span>
+    <span>날씨 제공 · Open-Meteo</span>
+  </footer>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // Tab & Navigation Control
+  function tab(closet) {
+    $('home').hidden = closet;
+    $('closet').hidden = !closet;
+    $('homeNav').classList.toggle('active', !closet);
+    $('closetNav').classList.toggle('active', closet);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $('homeNav').onclick = () => tab(false);
+  ['closetNav', 'start', 'add'].forEach(id => $(id).onclick = () => tab(true));
+  $('scrollCurated').onclick = () => $('curatedSection').scrollIntoView({ behavior: 'smooth' });
+
+  // Cozy Capsule Wardrobe Data + Dynamic Theme Colors
+  const capsules = [
+    {
+      code: '01 / 05',
+      mood: '세이지 & 아이보리 · 18°C',
+      tip: '산뜻한 바람이 부는 날 · 세이지 그린 셔츠로 차분하게 입어보세요.',
+      paletteName: '세이지 · 크림',
+      colors: ['#f4f6f2', '#4a6354', '#d8dfd3'],
+      theme: {
+        base: '#f8faf7',
+        surface: '#eef2ec',
+        accent: '#3e5949',
+        warm: '#7fa18c',
+        soft: '#e5ece3',
+        grad: '#e2ebe0',
+        glow: 'rgba(127, 161, 140, 0.16)',
+        border: '#dbe2d8'
+      },
+      items: [
+        { name: '세이지 코튼 오버셔츠', detail: '가볍고 산뜻한 텍스처', tag: '겉옷', bg: '#e6ede5', stroke: '#3e5949', icon: 'cardigan' },
+        { name: '오프화이트 골지 니트', detail: '부드럽게 감싸는 이너웨어', tag: '상의', bg: '#f6f7f4', stroke: '#6c7a6e', icon: 'shirt' },
+        { name: '샌드 베이지 코튼 팬츠', detail: '편안한 테이퍼드 핏', tag: '하의', bg: '#f1ede4', stroke: '#7a705e', icon: 'pants' }
+      ]
+    },
+    {
+      code: '02 / 05',
+      mood: '슬레이트 & 데님 · 16°C',
+      tip: '출근이나 카페 작업할 때 · 네이비 자켓으로 단정하게 마무리해요.',
+      paletteName: '슬레이트 · 미스트',
+      colors: ['#eef2f6', '#334b63', '#8ca2b8'],
+      theme: {
+        base: '#f7f9fb',
+        surface: '#ebf0f5',
+        accent: '#2f4861',
+        warm: '#6e90b0',
+        soft: '#e1e9f2',
+        grad: '#dde6f0',
+        glow: 'rgba(110, 144, 176, 0.16)',
+        border: '#d6dfe8'
+      },
+      items: [
+        { name: '슬레이트 블루 울 자켓', detail: '군더더기 없는 모던 실루엣', tag: '겉옷', bg: '#e2eaf2', stroke: '#2f4861', icon: 'cardigan' },
+        { name: '스카이블루 옥스포드 셔츠', detail: '단정하면서도 여유로운 핏', tag: '상의', bg: '#edf3f8', stroke: '#4a6b8a', icon: 'shirt' },
+        { name: '딥 인디고 스트레이트 데님', detail: '어디에나 어울리는 클래식 데님', tag: '하의', bg: '#e3e7ee', stroke: '#2b394a', icon: 'pants' }
+      ]
+    },
+    {
+      code: '03 / 05',
+      mood: '테라코타 로즈 · 19°C',
+      tip: '햇살 좋은 오후 산책 · 따뜻한 로즈 베이지 니트로 포근하게.',
+      paletteName: '블러쉬 · 클레이',
+      colors: ['#faf2ef', '#9e5a4c', '#e3c3b8'],
+      theme: {
+        base: '#fcf8f7',
+        surface: '#f5ece9',
+        accent: '#8c4b3e',
+        warm: '#cf8b7c',
+        soft: '#f0e1dc',
+        grad: '#eedcd6',
+        glow: 'rgba(207, 139, 124, 0.16)',
+        border: '#e8dad5'
+      },
+      items: [
+        { name: '더스티 로즈 캐시미어 니트', detail: '포근하고 화사한 톤온톤 무드', tag: '상의', bg: '#f4e4df', stroke: '#8c4b3e', icon: 'shirt' },
+        { name: '아이보리 플리츠 스커트', detail: '가볍게 흩날리는 실루엣', tag: '하의', bg: '#faf6f4', stroke: '#8f7b75', icon: 'pants' },
+        { name: '탠 레더 미니 크로스백', detail: '룩에 생기를 더하는 포인트', tag: '가방', bg: '#f2e6df', stroke: '#9c5c3b', icon: 'bag' }
+      ]
+    },
+    {
+      code: '04 / 05',
+      mood: '코지 에스프레소 · 17°C',
+      tip: '일교차 11°C · 모카 브라운 카디건 하나로 보온과 무드를 동시에.',
+      paletteName: '오트 · 에스프레소',
+      colors: ['#e8dfd3', '#5e422e', '#2c2724'],
+      theme: {
+        base: '#faf9f6',
+        surface: '#f2eee7',
+        accent: '#5e422e',
+        warm: '#c59b76',
+        soft: '#f5efe8',
+        grad: '#ece3d8',
+        glow: 'rgba(197, 155, 118, 0.16)',
+        border: '#e2dcd4'
+      },
+      items: [
+        { name: '모카 브라운 울 카디건', detail: '포근한 미들 게이지 니트웨어', tag: '겉옷', bg: '#efe5dc', stroke: '#6e4c36', icon: 'cardigan' },
+        { name: '오트밀 코튼 레이어드 티', detail: '탄탄하고 부드러운 촉감', tag: '상의', bg: '#f6f3ee', stroke: '#8c7e72', icon: 'shirt' },
+        { name: '와이드 블랙 울 슬랙스', detail: '여유롭게 떨어지는 핏', tag: '하의', bg: '#e9e7e4', stroke: '#2f2b28', icon: 'pants' }
+      ]
+    },
+    {
+      code: '05 / 05',
+      mood: '어반 모노크롬 · 15°C',
+      tip: '깔끔하고 정돈된 하루 · 차콜과 그레이 톤으로 담백하게.',
+      paletteName: '애쉬 · 차콜',
+      colors: ['#f2f2f2', '#2b2b2b', '#8c8c8c'],
+      theme: {
+        base: '#f8f8f8',
+        surface: '#efefef',
+        accent: '#262626',
+        warm: '#737373',
+        soft: '#e6e6e6',
+        grad: '#e3e3e3',
+        glow: 'rgba(115, 115, 115, 0.14)',
+        border: '#dcdcdc'
+      },
+      items: [
+        { name: '차콜 발마칸 하프 코트', detail: '군더더기 없는 미니멀 아우터', tag: '겉옷', bg: '#e6e6e8', stroke: '#2e2e30', icon: 'cardigan' },
+        { name: '헤더 그레이 메리노 니트', detail: '가볍고 따뜻한 파인 울', tag: '상의', bg: '#f2f2f3', stroke: '#59595c', icon: 'shirt' },
+        { name: '매트 블랙 테이퍼드 팬츠', detail: '깔끔하게 떨어지는 모던 핏', tag: '하의', bg: '#e8e8ea', stroke: '#1f1f21', icon: 'pants' }
+      ]
+    }
+  ];
+
+  const svgIcons = {
+    cardigan: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/><line x1="12" y1="6" x2="12" y2="22"/></svg>`,
+    shirt: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/></svg>`,
+    pants: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l1.5 18h-5l-2.5-10-2.5 10h-5L6 3z"/></svg>`,
+    bag: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>`
+  };
+
+  const capsuleTones = ['sage', 'slate', 'rose', 'warm', 'mono'];
+  const colorSelect = $('colorTone');
+  let capsuleIdx = 0;
+
+  function applyTheme(theme) {
+    const root = document.documentElement.style;
+    root.setProperty('--bg-base', theme.base);
+    root.setProperty('--bg-surface', theme.surface);
+    root.setProperty('--accent-brown', theme.accent);
+    root.setProperty('--accent-warm', theme.warm);
+    root.setProperty('--accent-soft', theme.soft);
+    root.setProperty('--hero-grad', theme.grad);
+    root.setProperty('--hero-glow', theme.glow);
+    root.setProperty('--border-light', theme.border);
+  }
+
+  function renderCapsule() {
+    const data = capsules[capsuleIdx];
+    applyTheme(data.theme);
+
+    $('capsuleCode').textContent = data.code;
+    $('capsuleMoodTitle').textContent = data.mood.replace(/ · -?\d+(?:\.\d+)?°C$/, '');
+    $('capsuleTip').textContent = data.tip;
+
+    $('capsuleItems').innerHTML = data.items.map(item => `
+      <div class="garment-item">
+        <div class="garment-icon" style="background:${item.bg}; color:${item.stroke};">
+          ${svgIcons[item.icon]}
+        </div>
+        <div class="garment-info">
+          <strong>${item.name}</strong>
+          <span>${item.detail}</span>
+        </div>
+        <span class="garment-tag">${item.tag}</span>
+      </div>
+    `).join('');
+
+    $('capsulePalette').innerHTML = `
+      ${data.colors.map(c => `<span style="background:${c}"></span>`).join('')}
+      <em class="palette-label" style="font-style:normal">${data.paletteName}</em>
+    `;
+  }
+
+  $('shuffleCapsule').onclick = () => {
+    capsuleIdx = (capsuleIdx + 1) % capsules.length;
+    colorSelect.value = capsuleTones[capsuleIdx];
+    renderCapsule();
+  };
+  colorSelect.value = capsuleTones[capsuleIdx];
+  renderCapsule();
+
+  // Closet Dummy Data (내 옷장에 저장된 옷 더미 데이터)
+  const myClosetDummy = [
+    { id: 1, gender: 'all', category: 'OUTER', name: '모카 브라운 울 카디건', color: 'warm', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'cardigan', bg: '#efe5dc', stroke: '#6e4c36' },
+    { id: 2, gender: 'all', category: 'OUTER', name: '세이지 코튼 오버셔츠', color: 'sage', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk'], icon: 'cardigan', bg: '#e6ede5', stroke: '#3e5949' },
+    { id: 3, gender: 'men', category: 'OUTER', name: '네이비 싱글 울 블레이저', color: 'slate', styles: ['formal', 'minimal'], purposes: ['work', 'cafe'], icon: 'cardigan', bg: '#e2eaf2', stroke: '#2f4861' },
+    { id: 4, gender: 'women', category: 'OUTER', name: '헤링본 체크 테일러드 재킷', color: 'warm', styles: ['formal', 'casual'], purposes: ['work', 'walk'], icon: 'cardigan', bg: '#efe8e0', stroke: '#6b5344' },
+    { id: 5, gender: 'all', category: 'OUTER', name: '차콜 발마칸 코트', color: 'mono', styles: ['minimal', 'formal'], purposes: ['work', 'walk'], icon: 'cardigan', bg: '#e6e6e8', stroke: '#2e2e30' },
+    { id: 6, gender: 'all', category: 'TOP', name: '아이보리 코튼 레이어드 티', color: 'all', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk', 'work'], icon: 'shirt', bg: '#f6f3ee', stroke: '#8c7e72' },
+    { id: 7, gender: 'all', category: 'TOP', name: '오트밀 메리노 터틀넥 니트', color: 'warm', styles: ['minimal', 'formal'], purposes: ['work', 'cafe'], icon: 'shirt', bg: '#f3ede4', stroke: '#7a6552' },
+    { id: 8, gender: 'all', category: 'TOP', name: '스카이블루 옥스포드 셔츠', color: 'slate', styles: ['formal', 'casual'], purposes: ['work', 'cafe'], icon: 'shirt', bg: '#edf3f8', stroke: '#4a6b8a' },
+    { id: 9, gender: 'all', category: 'BOTTOM', name: '와이드 블랙 울 슬랙스', color: 'mono', styles: ['minimal', 'formal'], purposes: ['work', 'cafe'], icon: 'pants', bg: '#e9e7e4', stroke: '#2f2b28' },
+    { id: 10, gender: 'all', category: 'BOTTOM', name: '샌드 베이지 코튼 치노 팬츠', color: 'warm', styles: ['casual', 'minimal'], purposes: ['cafe', 'walk'], icon: 'pants', bg: '#f1ede4', stroke: '#7a705e' },
+    { id: 11, gender: 'women', category: 'BOTTOM', name: '크림 롱 플리츠 스커트', color: 'sage', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'pants', bg: '#f5f6f2', stroke: '#55695b' },
+    { id: 12, gender: 'all', category: 'BOTTOM', name: '딥 인디고 스트레이트 데님', color: 'slate', styles: ['casual'], purposes: ['walk', 'cafe'], icon: 'pants', bg: '#e3e7ee', stroke: '#2b394a' },
+    { id: 13, gender: 'all', category: 'TOP', name: '더스티 로즈 코튼 셔츠', color: 'rose', styles: ['minimal', 'casual'], purposes: ['cafe', 'work'], icon: 'shirt', bg: '#f4e6e7', stroke: '#8e525c' },
+    { id: 14, gender: 'all', category: 'TOP', name: '테라코타 울 니트', color: 'rose', styles: ['minimal', 'casual'], purposes: ['cafe', 'walk'], icon: 'shirt', bg: '#f2e4db', stroke: '#9b5137' }
+  ];
+  $('closetDummyCount').textContent = '예시 옷장 ' + myClosetDummy.length + '벌로 추천해요.';
+
+  // Pinterest Mock Reference Database (추후 Pinterest API 연동 시 검색 쿼리로 대체)
+  const pinterestMockRefs = {
+    men: {
+      warm: { path: 'f8/70/3f/f8703fdea69f342e13c999b097ef45f4.jpg', title: '부드러운 브라운 무드', desc: '브라운 카디건 · 블랙 슬랙스 실루엣', pin: '422281209388500', query: 'men brown cardigan minimal outfit' },
+      sage: { path: 'ab/24/02/ab2402fc58249273697f6d9ec35704f2.jpg', title: '차분한 얼스 & 그린 톤', desc: '오버셔츠 · 코튼 팬츠 레이어드', pin: '927249010771235211', query: 'men sage overshirt casual look' },
+      slate: { path: 'ab/24/02/ab2402fc58249273697f6d9ec35704f2.jpg', title: '단정한 네이비 테일러링', desc: '울 블레이저 · 셔츠 포멀 룩', pin: '927249010771235211', query: 'men navy blazer smart casual' },
+      mono: { path: 'f8/70/3f/f8703fdea69f342e13c999b097ef45f4.jpg', title: '절제된 모노크롬 미니멀', desc: '차콜 아우터 · 블랙 팬츠 조합', pin: '422281209388500', query: 'men charcoal monochrome outfit' }
+    },
+    women: {
+      warm: { path: '34/bd/87/34bd87918a4445254f8b814ed18c15df.jpg', title: '포근한 베이지 & 브라운 레이어드', desc: '니트 · 웜톤 슬랙스 코디', pin: '409968372337296992', query: 'women beige knit warm minimal outfit' },
+      sage: { path: 'dd/ed/26/dded26ef520a86e5e389023f9407997e.jpg', title: '일상의 산뜻한 여유', desc: '가벼운 아우터 · 롱 스커트 매치', pin: '21462535719575733', query: 'women sage cardigan long skirt look' },
+      slate: { path: '12/af/36/12af36081fb9cf6ea2da785640e5a990.jpg', title: '깔끔한 데님 & 재킷 믹스', desc: '테일러드 재킷 · 스트레이트 데님', pin: '422281208644025', query: 'women blazer straight denim outfit' },
+      mono: { path: '34/bd/87/34bd87918a4445254f8b814ed18c15df.jpg', title: '모던 차콜 미니멀 룩', desc: '차콜 코트 · 모노톤 이너 레이어드', pin: '409968372337296992', query: 'women charcoal coat minimal fashion' }
+    }
+  };
+
+  const cities = {
+    서울: [37.57,126.98], 부산: [35.18,129.08], 대구: [35.87,128.60],
+    인천: [37.46,126.70], 대전: [36.35,127.38], 광주: [35.16,126.85], 제주: [33.50,126.53]
+  };
+  const placeTones = {
+    cafe: {tone:'warm', note:'아이보리 · 베이지 · 브라운으로 부드럽게'},
+    work: {tone:'slate', note:'아이보리 · 네이비 · 슬레이트 블루로 단정하게'},
+    walk: {tone:'sage', note:'아이보리 · 세이지로 가볍게'},
+    formal: {tone:'mono', note:'차콜 · 그레이 · 화이트로 차분하게'}
+  };
+  const conditionLabels = {dry:'비·눈 예보 없음', rain:'비 대비', snow:'눈 대비', unknown:'강수 판단 어려움'};
+  let forecast = null;
+  let weatherRequest;
+
+  function clothingPlan(data, sensitivity) {
+    const shift = Number(sensitivity);
+    const low = Math.min(data.feel, data.low) + shift;
+    const high = data.high + shift;
+    if (low < 5) return {outer:true, warmth:3, text:'두꺼운 코트나 패딩을 기본으로, 이너와 니트를 겹쳐 입으세요.'};
+    if (low < 12) return {outer:true, warmth:high >= 18 ? 2 : 3, text:high >= 18 ? '아침·저녁엔 니트 위에 겉옷을 걸치고, 낮에는 벗어서 조절하세요.' : '도톰한 재킷이나 코트를 챙기고 안에 얇은 이너를 겹쳐 입으세요.'};
+    if (low < 19) return {outer:true, warmth:1, text:'가볍게 벗어 들 수 있는 카디건이나 얇은 재킷을 챙기세요.'};
+    return {outer:false, warmth:1, text:'낮과 저녁 모두 따뜻하다면 가벼운 한 겹으로 시작해 보세요.'};
+  }
+
+  const footwear = {
+    dry: '보행량에 맞춰 편한 스니커즈나 로퍼를 선택하세요.',
+    rain: '스웨이드와 캔버스는 피하고, 방수 신발이나 고무 밑창 신발을 고려하세요.',
+    snow: '얇거나 매끈한 밑창은 피하고, 방수와 미끄럼 방지 기능이 있는 신발을 고르세요.',
+    unknown: '강수 정보가 없어요. 비·눈 예보를 확인한 다음 신발을 고르세요.'
+  };
+
+  function paintWeather() {
+    $('purposePalette').textContent = '장소별 색감 제안 · ' + placeTones[$('purpose').value].note;
+    if (!forecast) return;
+    const gap = forecast.high - forecast.low;
+    const change = forecast.yesterday == null ? null : forecast.high - forecast.yesterday;
+    const changeText = change != null && Math.abs(change) >= 5
+      ? ' 어제보다 최고 기온이 ' + Math.abs(change).toFixed(1) + '°C ' + (change < 0 ? '낮아요.' : '높아요.') : '';
+    $('weatherSource').textContent = forecast.source;
+    $('headerWeather').textContent = forecast.source.split(' · ')[0] + ' · ' + Math.round(forecast.feel) + '°C';
+    $('weatherFeel').textContent = Math.round(forecast.feel) + '°';
+    $('weatherSummary').textContent = '최저 ' + forecast.low + '° · 최고 ' + forecast.high + '° · 일교차 ' +
+      Number(gap.toFixed(1)) + '° · ' + conditionLabels[forecast.condition] +
+      (forecast.probability == null ? '' : ' · 강수 확률 ' + forecast.probability + '%');
+    $('weatherAdvice').textContent = (gap >= 10 ? '일교차가 커요. ' : '') +
+      clothingPlan(forecast, $('sensitivity').value).text + changeText;
+    $('capsuleTip').textContent = '오늘의 날씨 · ' + $('weatherAdvice').textContent;
+  }
+
+  function readForecast(data, city) {
+    const daily = data.daily;
+    const i = daily.time.indexOf(data.current.time.slice(0, 10));
+    const low = daily.temperature_2m_min[i], high = daily.temperature_2m_max[i];
+    const feel = data.current.apparent_temperature;
+    if (i < 0 || ![low, high, feel].every(Number.isFinite) || low > high) throw new Error('Incomplete forecast');
+    const rain = daily.rain_sum[i], showers = daily.showers_sum[i], snow = daily.snowfall_sum[i];
+    const probability = daily.precipitation_probability_max[i];
+    const condition = snow > 0 ? 'snow' : rain > 0 || showers > 0 || probability >= 40
+      ? 'rain' : [rain, showers, snow].every(Number.isFinite) ? 'dry' : 'unknown';
+    return {source:city + ' · Open-Meteo 예보', feel, low, high, condition,
+      probability: Number.isFinite(probability) ? probability : null,
+      yesterday: Number.isFinite(daily.temperature_2m_max[i-1]) ? daily.temperature_2m_max[i-1] : null};
+  }
+
+  async function loadWeather() {
+    weatherRequest?.abort();
+    const request = new AbortController();
+    weatherRequest = request;
+    const timeout = setTimeout(() => request.abort(), 8000);
+    const city = $('weatherCity').value;
+    const [latitude, longitude] = cities[city];
+    const params = new URLSearchParams({latitude, longitude, timezone:'Asia/Seoul', forecast_days:'1', past_days:'1',
+      current:'apparent_temperature', daily:'temperature_2m_min,temperature_2m_max,precipitation_probability_max,rain_sum,showers_sum,snowfall_sum'});
+    forecast = null;
+    $('generateOutfitBtn').disabled = true;
+    $('loadWeather').disabled = true;
+    $('loadWeather').textContent = '불러오는 중…';
+    $('weatherSource').textContent = city + ' · 오늘 날씨';
+    $('headerWeather').textContent = city;
+    $('weatherFeel').textContent = '—';
+    $('weatherSummary').textContent = '';
+    $('weatherAdvice').textContent = '';
+    $('capsuleTip').textContent = city + ' 날씨를 불러오는 중이에요.';
+    $('recommendationArea').innerHTML = '';
+    $('weatherStatus').textContent = city + ' 예보를 불러오는 중이에요.';
+    try {
+      const response = await fetch('https://api.open-meteo.com/v1/forecast?' + params, {signal:request.signal});
+      if (!response.ok) throw new Error('Forecast request failed');
+      const data = await response.json();
+      if (request !== weatherRequest) return;
+      forecast = readForecast(data, city);
+      paintWeather();
+      $('weatherStatus').textContent = '';
+      $('generateOutfitBtn').disabled = false;
+    } catch {
+      if (request !== weatherRequest) return;
+      $('capsuleTip').textContent = '지금은 날씨를 확인할 수 없어요.';
+      $('weatherStatus').textContent = city + ' 예보를 불러오지 못했어요. 다시 불러오기를 눌러 주세요.';
+    } finally {
+      clearTimeout(timeout);
+      if (request === weatherRequest) {
+        $('loadWeather').disabled = false;
+        $('loadWeather').textContent = forecast ? '날씨 새로고침' : '다시 불러오기';
+      }
+    }
+  }
+
+  for (const city of Object.keys(cities)) $('weatherCity').add(new Option(city, city));
+  $('weatherCity').onchange = loadWeather;
+  $('loadWeather').onclick = loadWeather;
+  $('sensitivity').onchange = paintWeather;
+  $('shuffleCapsule').addEventListener('click', () => {
+    if (forecast) paintWeather();
+    else $('capsuleTip').textContent = $('weatherStatus').textContent;
+  });
+  paintWeather();
+
+  const garmentWarmth = {
+    1:2, 2:1, 3:2, 4:2, 5:3, 6:1, 7:3, 8:1, 9:2, 10:1, 11:1, 12:2, 13:1, 14:3
+  };
+  const sampleCutoutUrls = {
+    5: 'wardrobe-cutouts/charcoal-coat.png',
+    7: 'wardrobe-cutouts/oatmeal-turtleneck.png',
+    12: 'wardrobe-cutouts/indigo-jeans.png'
+  };
+
+  function renderGarmentPhoto(item) {
+    const url = item.cutoutUrl || sampleCutoutUrls[item.id];
+    const slot = document.createElement('div');
+    slot.className = 'outfit-garment-photo';
+    function showIcon() {
+      slot.innerHTML = '<span class="garment-icon" aria-hidden="true">' + svgIcons[item.icon] + '</span>';
+    }
+    if (url) {
+      const image = document.createElement('img');
+      image.alt = item.name;
+      image.addEventListener('error', showIcon, { once: true });
+      image.src = url;
+      slot.append(image);
+    } else {
+      showIcon();
+    }
+    return slot;
+  }
+  function activeTone() {
+    return colorSelect.value === 'auto' ? placeTones[$('purpose').value].tone : colorSelect.value;
+  }
+
+  function syncPalette() {
+    capsuleIdx = capsuleTones.indexOf(activeTone());
+    renderCapsule();
+    if (forecast) paintWeather();
+    else $('capsuleTip').textContent = $('weatherStatus').textContent;
+  }
+
+  function pickClosetItem(category, gender, colorTone, purpose, styleMood, targetWarmth) {
+    const pool = myClosetDummy.filter(item =>
+      item.category === category && (item.gender === 'all' || item.gender === gender)
+    );
+    const minimum = (category === 'OUTER' && targetWarmth >= 2) || targetWarmth === 3;
+    function score(item) {
+      const warmth = garmentWarmth[item.id];
+      const missesWeather = minimum ? warmth < targetWarmth : warmth > targetWarmth;
+      const palette = item.color === colorTone ? 30
+        : item.color === 'all' || item.color === 'mono' || (colorTone === 'rose' && item.color === 'warm') ? 12 : 0;
+      const occasion = item.purposes.includes(purpose) || (purpose === 'formal' && item.styles.includes('formal'));
+      return palette - (missesWeather ? 60 : 0) - 4 * Math.abs(warmth - targetWarmth)
+        + (occasion ? 2 : 0) + (item.styles.includes(styleMood) ? 2 : 0);
+    }
+    return pool.sort((a, b) => score(b) - score(a))[0];
+  }
+
+  colorSelect.onchange = syncPalette;
+  $('purpose').onchange = syncPalette;
+
+  function generateRecommendation() {
+    if (!forecast) return;
+    const gender = $('gender').value;
+    const purpose = $('purpose').value;
+    const colorTone = activeTone();
+    const palette = capsules[capsuleTones.indexOf(colorTone)];
+    const plan = clothingPlan(forecast, $('sensitivity').value);
+    const styleMood = $('styleMood').value;
+
+    const genderLabel = $('gender').selectedOptions[0].text;
+    const colorLabel = palette.paletteName;
+    const purposeLabel = $('purpose').selectedOptions[0].text;
+    const styleLabel = $('styleMood').selectedOptions[0].text;
+
+    // 1. 내 옷장 더미 데이터에서 아우터/상의/하의 조합 추출
+    const matchedOuter = plan.outer ? pickClosetItem('OUTER', gender, colorTone, purpose, styleMood, plan.warmth) : null;
+    const mildAfternoon = forecast.high + Number($('sensitivity').value) >= 18;
+    const innerWarmth = mildAfternoon ? 1 : plan.warmth;
+    const matchedTop = pickClosetItem('TOP', gender, colorTone, purpose, styleMood, innerWarmth);
+    const matchedBottom = pickClosetItem('BOTTOM', gender, colorTone, purpose, styleMood, mildAfternoon ? 1 : Math.min(plan.warmth, 2));
+    const outfit = [matchedOuter, matchedTop, matchedBottom].filter(Boolean);
+    const hasThemeColor = outfit.some(item => item.color === colorTone);
+    const outerNote = !hasThemeColor
+      ? '오늘 날씨에 맞고 테마 색과도 일치하는 옷이 없어, 함께 입기 좋은 색으로 조합했어요.'
+      : matchedOuter && matchedOuter.color !== colorTone
+        ? '겉옷은 보온성을 우선하고, 테마 색은 다른 옷에 반영했어요.' : '';
+    const categoryLabels = { OUTER: '겉옷', TOP: '상의', BOTTOM: '하의' };
+
+    // 2. 조건에 맞는 핀터레스트 레퍼런스 매칭
+    const ref = pinterestMockRefs[gender][colorTone];
+
+    $('recommendationArea').innerHTML = `
+      <div class="result-grid${ref ? '' : ' result-no-reference'}">
+        <div class="wardrobe-match-box">
+          <div>
+            <div class="match-meta">
+              <span class="label">예시 옷장 조합 결과</span>
+              <span class="match-chip">${purposeLabel} · ${styleLabel}</span>
+            </div>
+            <h3 style="margin:0 0 6px; font-size:20px; font-weight:700; letter-spacing:-0.4px;">오늘의 코디 조합</h3>
+            <p style="margin:0 0 20px; font-size:13.5px; color:var(--ink-secondary);">
+              <strong>${colorLabel}</strong> 테마 · ${genderLabel} · 체감 ${Math.round(forecast.feel)}°C
+            </p>
+            <div class="palette-dots result-palette" aria-label="${colorLabel}">
+              ${palette.colors.map(color => `<span style="background:${color}"></span>`).join('')}
+            </div>
+            ${outerNote ? `<p class="result-weather-note">${outerNote}</p>` : ''}
+            <div class="garment-stack">
+              ${outfit.map(item => `
+                <div class="garment-item">
+                  <div data-outfit-photo></div>
+                  <div class="garment-info">
+                    <strong>${item.name}</strong>
+                    <span>예시 옷장 아이템</span>
+                  </div>
+                  <span class="garment-tag">${categoryLabels[item.category]}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="outfit-guidance">
+            <section><h4>겉옷 · 레이어드</h4><p>${plan.text}</p></section>
+            <section><h4>오늘의 신발</h4><p>${footwear[forecast.condition]}</p></section>
+          </div>
+        </div>
+
+        ${ref ? `<div class="result-reference">
+          <article class="look">
+            <a target="_blank" rel="noopener noreferrer" href="https://www.pinterest.com/pin/${ref.pin}/">
+              <div class="look-img-wrap">
+                <img src="https://i.pinimg.com/originals/${ref.path}" alt="${ref.desc}">
+              </div>
+              <div class="look-body">
+                <small>스타일 참고 예시 · Pinterest</small>
+                <h3>${ref.title}</h3>
+                <p>${ref.desc}</p>
+              </div>
+            </a>
+          </article>
+        </div>` : ''}
+      </div>
+    `;
+    $('recommendationArea').querySelectorAll('[data-outfit-photo]').forEach((placeholder, index) => {
+      placeholder.replaceWith(renderGarmentPhoto(outfit[index]));
+    });
+  }
+
+  $('generateOutfitBtn').onclick = generateRecommendation;
+  loadWeather();
+
+  // Closet File Upload
+  function upload(files) {
+    let rejected = 0;
+    for (const file of files) {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 15 * 1024 * 1024) {
+        rejected++;
+        continue;
+      }
+      const card = document.createElement('article');
+      const image = document.createElement('img');
+      const name = document.createElement('p');
+      const remove = document.createElement('button');
+      const url = URL.createObjectURL(file);
+
+      image.src = url;
+      image.alt = file.name;
+      name.textContent = file.name;
+      remove.textContent = '옷장에서 빼기';
+      remove.onclick = () => {
+        URL.revokeObjectURL(url);
+        card.remove();
+        $('empty').hidden = $('clothes').children.length > 0;
+      };
+      card.append(image, name, remove);
+      $('clothes').append(card);
+    }
+    $('empty').hidden = $('clothes').children.length > 0;
+    $('uploadStatus').textContent = rejected
+      ? '일부 파일은 지원하지 않는 형식이거나 15MB를 초과해 제외되었어요.'
+      : '옷장에 옷을 담았어요. 새로고침하면 초기화되는 시안 모드입니다.';
+  }
+
+  document.querySelector('input[type=file]').onchange = e => upload(e.target.files);
+  $('drop').ondragover = e => { e.preventDefault(); $('drop').classList.add('drag'); };
+  $('drop').ondragleave = () => $('drop').classList.remove('drag');
+  $('drop').ondrop = e => {
+    e.preventDefault();
+    $('drop').classList.remove('drag');
+    upload(e.dataTransfer.files);
+  };
+</script>
+</body>
+</html>

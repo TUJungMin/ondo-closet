@@ -1,0 +1,47 @@
+[hidden]{display:none!important}
+.account-actions,.dialog-head{display:flex;align-items:center;gap:12px;justify-content:space-between}
+#accountButton,#refreshCloset,.server-panel button,#accountDialog button,#garmentDialog button,#saveAllDrafts,.server-garment button{
+  color:var(--ink-primary);background:var(--bg-surface);border:1px solid var(--border-light);border-radius:9px;padding:8px 12px;min-height:40px
+}
+#accountDialog,#garmentDialog{width:min(92vw,560px);max-height:88vh;overflow:auto;border:1px solid var(--border-light);border-radius:18px;padding:24px;color:var(--ink-primary);background:var(--bg-card)}
+dialog::backdrop{background:#111a17a0}
+.dialog-head h2{margin:0}
+#authBody>button{margin:12px 8px 0 0}
+.server-fields{display:grid;gap:12px;margin:14px 0}
+.server-fields input:not([type=checkbox]),.server-fields select{width:100%;min-height:40px}
+.server-fields input:not([type=checkbox]){border:1px solid var(--border-light);background:var(--bg-surface);border-radius:8px;padding:8px;font:inherit;color:inherit}
+.server-fields label:has(input[type=checkbox]){display:flex;align-items:center;gap:8px}
+.server-fields button[type=submit],.server-fields button:not([type]){background:var(--accent-brown)!important;color:#fff!important}
+.server-fields button:disabled,#accountDialog button:disabled,#saveAllDrafts:disabled{opacity:.55;cursor:wait}
+.server-form-status:empty,#authStatus:empty{display:none}
+.field-error{color:#9f3022}.server-warning{color:var(--ink-primary);background:var(--bg-surface);padding:10px}
+.guest-entry{animation:guest-entry .23s ease-out}
+@keyframes guest-entry{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.guest-entry{animation:none}}
+.guest-styles{border:1px solid var(--border-light);border-radius:10px;padding:10px;display:flex;flex-wrap:wrap;gap:10px}
+.server-panel{margin:20px 0;border:1px solid var(--border-light);border-radius:14px;padding:18px;background:var(--bg-card)}
+.analysis-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.analysis-preview{position:relative;width:fit-content;max-width:min(100%,520px);margin:12px 0}
+.analysis-preview img{width:auto;max-width:100%;max-height:440px;display:block}
+.detected-garment{position:absolute;border:2px solid #256955;color:#fff;text-shadow:0 0 3px #101010;font-weight:700}
+.server-preview{max-width:100%;max-height:180px;object-fit:contain;justify-self:center}
+.server-garment{border:1px solid var(--border-light);border-radius:12px;padding:12px;background:var(--bg-card)}
+.server-garment .outfit-garment-photo{width:100%;height:150px;overflow:hidden;margin-bottom:8px}
+.server-garment .outfit-garment-photo img{height:100%;object-fit:contain}
+.server-garment button{margin-right:5px}
+.server-result{margin-bottom:16px}
+.sample-garment-photo{display:block;width:100%;height:100%;max-width:136px;max-height:136px;aspect-ratio:1;background-image:url('../img/sample-wardrobe.png');background-size:400% 300%;background-repeat:no-repeat;border-radius:inherit}
+.outfit-preview{display:block;align-self:start}
+.outfit-preview h3{margin:0 0 14px}
+.pinterest-preview{display:block;margin-bottom:14px;border:1px solid var(--border-light);border-radius:12px;overflow:hidden;color:inherit;text-decoration:none;background:var(--bg-surface)}
+.pinterest-preview img{display:block;width:100%;height:clamp(230px,32vw,360px);object-fit:contain;background:var(--bg-surface)}
+.pinterest-caption{display:block;padding:10px 12px;font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.pinterest-caption + .pinterest-caption{padding-top:0;font-weight:400;color:var(--ink-secondary)}
+.pinterest-preview:hover .pinterest-caption:first-of-type{text-decoration:underline}
+.outfit-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.outfit-preview-grid figure{display:grid;align-content:start;gap:8px;margin:0;min-width:0;padding:10px;border:1px solid var(--border-light);border-radius:12px;background:var(--bg-surface)}
+.outfit-preview-grid .outfit-garment-photo{width:100%;height:auto;aspect-ratio:1;overflow:hidden}
+.outfit-preview-grid figcaption{overflow-wrap:anywhere;font-size:13px;font-weight:600}
+.outfit-basis{margin-top:16px;color:var(--ink-secondary)}
+@media(max-width:680px){#accountButton{font-size:12px;padding:5px 8px}header nav{gap:8px}}
+.guest-styles label { padding:8px 10px; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:8px; cursor:pointer; } .guest-styles label:has(input:checked){border-color:var(--accent-brown)}
