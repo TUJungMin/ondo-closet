@@ -3,7 +3,7 @@
 대회 제출 별첨(외부 자원 출처, AI 활용내역)에 그대로 옮기는 문서다.
 오픈소스·모델·데이터·API를 추가할 때마다 한 줄씩 적는다. (CLAUDE.md 3장 4항)
 
-마지막 갱신: 2026-11-18 · 범위: AI 모듈(`ai/`). 백엔드·프론트에서 쓰는 자원은 각 담당이 아래에 이어서 적는다.
+마지막 갱신: 2026-11-22 · 범위: AI 모듈(`ai/`). 백엔드·프론트에서 쓰는 자원은 각 담당이 아래에 이어서 적는다.
 
 ## 1. AI 모델
 
@@ -79,6 +79,8 @@
 | Trenchcoat worn by President Gerald R. Ford.jpg | https://commons.wikimedia.org/wiki/File:Trenchcoat_worn_by_President_Gerald_R._Ford.jpg | Public domain |
 | T-shirt.png | https://commons.wikimedia.org/wiki/File:T-shirt.png | CC0 |
 
+2026-11-22 백엔드 연결 확인과 워밍업 시간 측정에는 외부 사진을 쓰지 않고, 코드로 그린 도형 그림 2장(티셔츠 모양, 상의·바지·신발 모양)을 개발 PC 임시 폴더에 만들어 썼다. 저장소에는 넣지 않았다.
+
 여러 옷 사진 분석의 동작 확인에는 팀원이 대화 중에 제공한 착용 사진 1장을 썼다(얼굴 없음, 전신). 출처를 확인하지 못한 사진이라 저장소·서버·문서에 넣지 않았고 임시 폴더에서만 열었다. 모델 학습에는 쓰지 않았다. 이 사진에서 드러난 문제를 보고 색 이름 규칙과 옷 분리 규칙을 정했으므로 평가용으로는 쓸 수 없다. 정식 평가와 시연에는 팀이 직접 찍은 사진을 쓴다.
 
 ## 5. 외부 API
@@ -92,5 +94,6 @@ AI 모듈은 실행 중 외부 API를 부르지 않는다. (모델 가중치를 
 | 도구 | 활용 범위 | 시기 |
 |---|---|---|
 | Claude Code (Anthropic, 모델 Claude Fable 5.2) | `ai/` 폴더의 코드·테스트·스크립트와 `ai/docs/external-resources.md`, `ai/docs/eval.md` 초안 작성, 모델 로드·동작 확인 실행 | 2026-11-18 |
+| Claude Code (Anthropic, 모델 Claude Fable 5.2) | 백엔드 연결 확인, 추천 시간 측정(`ai/scripts/bench_recommend.py`), 서버 시작 워밍업, 착용 사진 평가 기능(`ai/scripts/evaluate.py`), `ai/docs/ai-overview.md` 초안 | 2026-11-22 |
 
 - 서비스 기능 자체에는 생성형 AI(LLM)를 쓰지 않는다. 추천 이유 문장은 규칙으로 만든 문장 틀이다.
