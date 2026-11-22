@@ -1,0 +1,14 @@
+[
+  {"name": "크림 니트", "category": "top", "color": "#f3ecd9", "material": "울", "warmth": 3, "style": "formal", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "화이트 옥스퍼드 셔츠", "category": "top", "color": "#ffffff", "material": "면", "warmth": 2, "style": "formal", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "그레이 맨투맨", "category": "top", "color": "#808080", "material": "면", "warmth": 3, "style": "casual", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "블랙 반팔 티셔츠", "category": "top", "color": "#151515", "material": "면", "warmth": 1, "style": "casual", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "브라운 슬랙스", "category": "pants", "color": "#6b4423", "material": "폴리에스터", "warmth": 2, "style": "formal", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "연청 데님 팬츠", "category": "pants", "color": "#a6c8e6", "material": "데님", "warmth": 2, "style": "casual", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "블랙 조거 팬츠", "category": "pants", "color": "#151515", "material": "폴리에스터", "warmth": 2, "style": "sporty", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "카멜 울 코트", "category": "outer", "color": "#c19a6b", "material": "울", "warmth": 5, "style": "formal", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "네이비 바람막이", "category": "outer", "color": "#1f2a44", "material": "나일론", "warmth": 2, "style": "sporty", "waterproof": true, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "브라운 더비 슈즈", "category": "shoes", "color": "#6b4423", "material": "가죽", "warmth": 2, "style": "formal", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "화이트 스니커즈", "category": "shoes", "color": "#ffffff", "material": "가죽", "warmth": 2, "style": "casual", "waterproof": false, "grip": false, "imageUrl": null, "aiTagged": false},
+  {"name": "블랙 방수 부츠", "category": "shoes", "color": "#151515", "material": "고무", "warmth": 3, "style": "casual", "waterproof": true, "grip": true, "imageUrl": null, "aiTagged": false}
+]
