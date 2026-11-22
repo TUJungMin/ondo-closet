@@ -8,15 +8,15 @@
 | 옷 한 벌 사진 분석 (배경 제거 · 대표색 · 종류/보온성/스타일 제안) | 구현 |
 | 옷이 여러 벌 찍힌 사진을 옷별로 나눠 분석 | 구현 (착용 사진 1장으로만 확인) |
 | 한 벌 고정 코디 추천 (날씨 · 장소 · 옷 상태 · 체감 기록 · 거절 이유) | 구현 |
-| 백엔드와 약속한 `/analyze` 응답 형식 맞추기 | **아직 안 맞음** (맨 아래 참고) |
+| 백엔드와 응답 형식 맞추기 | 백엔드(`jungmin` 브랜치)가 지금 구현 형식을 그대로 읽는다. 2026-11-22 두 서버를 띄워 확인 (맨 아래 참고) |
 
-테스트 111개 통과. 팀이 찍은 사진으로 한 정식 정확도 평가는 아직 없다 ([docs/eval.md](docs/eval.md)).
+테스트 124개 통과. 팀이 찍은 사진으로 한 정식 정확도 평가는 아직 없다 ([docs/eval.md](docs/eval.md)).
 
 > 이 문서의 경로와 명령은 모두 `ai/` 폴더 기준이다.
 
 ## 실행
 
-- Python 3.11 (팀 통일). 개발과 테스트는 3.12에서 했고 3.10 이상이면 동작하도록 썼다. 3.11에서는 아직 돌려 보지 않았다.
+- Python 3.11 (팀 통일). 개발은 3.12에서 했고 3.10 이상이면 동작하도록 썼다. 3.11.18에서도 테스트 전체와 실제 사진 분석·서버 실행을 확인했다(2026-11-22).
 - 모델을 처음 쓸 때 가중치 약 1.3GB를 Hugging Face에서 내려받는다. NVIDIA GPU가 있으면 사진당 약 0.3초, CPU만 있으면 2.5~10초.
 
 ```bash
@@ -41,6 +41,8 @@ GPU가 없으면 주소 끝의 `cu128`을 `cpu`로 바꾼다. 이어서:
 
 띄운 뒤 http://127.0.0.1:8000/docs 에서 요청·응답 형식을 보고 바로 호출해 볼 수 있다.
 macOS·Linux에서는 `.venv/Scripts/python` 대신 `.venv/bin/python`을 쓴다.
+
+시연·배포 때는 환경 변수 `ONDO_WARMUP=outfit`을 주고 띄운다(PowerShell: `$env:ONDO_WARMUP='outfit'` 뒤에 위 명령). 서버가 시작하면서 모델을 미리 올리고, 그동안 `GET /ai/health`는 `{"status": "loading"}`, 다 올리면 `{"status": "ok"}`가 된다. `ok`가 된 뒤에는 첫 분석도 1초 안에 나온다(GPU). 기본값은 끔이다.
 
 설치 확인 (모델을 내려받지 않는다):
 
@@ -79,7 +81,7 @@ ai/
 │  ├─ service.py            FastAPI 라우터와 앱
 │  ├─ cli.py                명령줄 도구
 │  └─ sample.py             예시 옷장 30벌 (글자 정보만)
-├─ scripts/                 evaluate.py(정확도 평가), benchmark.py(처리 시간)
+├─ scripts/                 evaluate.py(정확도 평가), benchmark.py(사진 처리 시간), bench_recommend.py(추천 시간)
 └─ tests/                   pytest
 ```
 
@@ -298,7 +300,7 @@ print(result.skipped, result.warnings)
 
 | 주소 | 입력 | 출력 |
 |---|---|---|
-| `GET /ai/health` | — | `{"status": "ok"}` |
+| `GET /ai/health` | — | `{"status": "ok"}`. `ONDO_WARMUP`으로 모델을 올리는 동안에는 `{"status": "loading"}` |
 | `POST /ai/warmup` | (선택) `?outfit=true` | 모델을 미리 메모리에 올린다. `outfit=true`면 검출 모델까지 |
 | `POST /ai/analyze` | multipart `file` (옷 한 벌 사진, 15MB 이하) | 분석 결과 + `cutout_png_base64` |
 | `POST /ai/analyze-outfit` | multipart `file` (옷이 여러 벌 찍힌 사진) | 옷별 분석 결과 목록. 옷마다 `box`와 `cutout_png_base64` |
@@ -388,6 +390,7 @@ app.include_router(router)
 | `ONDO_MAX_IMAGE_SIDE` | `1600` | 분석 전에 원본 사진을 이 크기 이하로 줄인다 |
 | `ONDO_CUTOUT_MAX_SIDE` | `800` | 저장하는 배경 제거 이미지의 최대 크기 |
 | `ONDO_CLASSIFY_ON` | `cutout` | 분류에 넣는 이미지. `cutout`(배경 지운 것) · `original` |
+| `ONDO_WARMUP` | (끔) | `outfit`이면 서버 시작 때 모델을 검출 모델까지 미리 올린다. 그동안 `/ai/health`는 `loading` |
 
 ## 평가와 측정
 
@@ -397,10 +400,22 @@ app.include_router(router)
 .venv/Scripts/python scripts/evaluate.py 평가폴더 --labels 평가폴더/labels.csv
 ```
 
+착용 사진(옷이 여러 벌 찍힌 사진)은 정답표를 따로 만들어 옷을 얼마나 찾는지 잰다.
+
+```bash
+.venv/Scripts/python scripts/evaluate.py 평가폴더 --outfit-labels 평가폴더/outfit_labels.csv
+```
+
 배포할 서버에서 사진당 처리 시간을 잰다.
 
 ```bash
 .venv/Scripts/python scripts/benchmark.py 평가폴더 --device cpu
+```
+
+추천 한 번에 걸리는 시간을 잰다(모델을 쓰지 않는다). `--url`을 주면 띄워 둔 서버로 HTTP 왕복까지 잰다.
+
+```bash
+.venv/Scripts/python scripts/bench_recommend.py --url http://127.0.0.1:8000
 ```
 
 팀이 직접 찍은 사진으로 한 정식 정확도 평가는 아직 하지 않았다. 지금 `docs/eval.md`에 있는 숫자는 처리 시간과 6장 동작 확인이다.
@@ -447,9 +462,9 @@ app.include_router(router)
 | 기온별 옷 두께 기준 | `ondo_ai/recommend/thermal.py`의 표 |
 | 점수 가중치, 장소별 스타일 적합도 | `ondo_ai/recommend/engine.py` 위쪽 |
 
-## 백엔드와 맞춰야 할 것 (미해결)
+## 백엔드와 맞춘 것 (초안과 다른 점)
 
-아래 "초안"은 저장소를 처음 만들 때 적어 둔 약속이다. 지금 구현은 이와 다르다. 어느 쪽에 맞출지 정해야 한다.
+2026-11-22 확인: 백엔드(`jungmin` 브랜치, 커밋 afd09bf)는 아래 표의 "지금 구현" 형식을 그대로 읽고, 영문 값(`top`, `casual` 등)으로의 변환은 백엔드가 맡는다. 두 서버를 띄워 `/ai/analyze` · `/ai/analyze-outfit` · `/ai/recommend`와 백엔드 경유 호출(`/api/clothes/analyze`, `/api/outfits/recommend`)이 맞물리는 것을 확인했다. 아래 "초안"은 저장소를 처음 만들 때 적어 둔 것으로, 기록으로만 남긴다.
 
 | 항목 | 초안 (아래) | 지금 구현 |
 |---|---|---|
